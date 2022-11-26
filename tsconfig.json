@@ -1,24 +1,20 @@
 {
-    "compilerOptions": {
-        "lib": ["es2020"],
-        "module": "commonjs",
-        "target": "es2020",
-        "types": ["node"],
-        "outDir": "lib",
-        "jsx": "react",
-        "removeComments": true,
-        "sourceMap": true,
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "noUnusedParameters": true,
-        "allowUnreachableCode": false,
-        "preserveConstEnums": false,
-        "resolveJsonModule": false,
-        "declaration": true
-    },
-    "exclude": [
-        "node_modules",
-        "lib"
-    ]
+	"compilerOptions": {
+		"lib": ["ES2022"],
+		"module": "commonjs",
+		"target": "ES2022",
+		"types": ["node"],
+		"outDir": "lib",
+		"jsx": "react",
+		"removeComments": true,
+		"sourceMap": true,
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"allowUnreachableCode": false,
+		"preserveConstEnums": false,
+		"resolveJsonModule": true,
+		"declaration": true
+	},
+	"exclude": ["node_modules", "lib"]
 }
