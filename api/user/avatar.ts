@@ -7,6 +7,7 @@ import mkdirp from "mkdirp";
 import path from "path";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import * as validate from "../../src/util/validate";
 
 export const route = [
 	"v1/user/avatar",
@@ -35,14 +36,14 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Get requested userid
 		const { userid } = body;
-		if (userid === undefined || isNaN(parseInt(userid.toString()))) return res.status(406).json({
+		if (!validate.userID(userid)) return res.status(406).json({
 			success: false,
 			error: "406 Not Acceptable",
 			description: "No user ID was specified."
 		});
 
 		// Make sure user exists
-		const user = (await User.fromID(parseInt(userid.toString())))!;
+		const user = await User.fromID(parseInt(userid.toString()));
 		if (!user) return res.status(406).json({
 			success: false,
 			error: "406 Not Acceptable",
@@ -61,8 +62,11 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			return res.sendFile(path.join(pfpDir, filename));
 		}
 
+		// Get default pfps
+		const defaultPfps = await readdir(path.resolve("./userdata/avatar/__defaults/"));
+
 		// Get default avatar and send as response
-		const defaultPath = path.resolve(`./userdata/avatar/__defaults/${user.id % 10}.png`);
+		const defaultPath = path.resolve(`./userdata/avatar/__defaults/${defaultPfps[user.id % defaultPfps.length]}`);
 		return res.sendFile(defaultPath);
 
 	}
@@ -133,7 +137,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	}
 
 	// Continue?
-	if (res.headersSent || req.method === "PUT") return;
+	if (res.headersSent) return;
 
 	return res.status(405).json({
 		success: false,
