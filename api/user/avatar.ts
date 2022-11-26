@@ -63,10 +63,10 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		}
 
 		// Get default pfps
-		const defaultPfps = await readdir(path.resolve("./userdata/avatar/__defaults/"));
+		const defaultPfps = await readdir(path.resolve("./default/avatar/"));
 
 		// Get default avatar and send as response
-		const defaultPath = path.resolve(`./userdata/avatar/__defaults/${defaultPfps[user.id % defaultPfps.length]}`);
+		const defaultPath = path.resolve(`./default/avatar/${defaultPfps[user.id % defaultPfps.length]}`);
 		return res.sendFile(defaultPath);
 
 	}

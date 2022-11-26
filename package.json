@@ -1,7 +1,7 @@
 {
-    "name": "ts-server",
+    "name": "auth-server",
     "version": "1.0.0",
-    "description": "Easily create back end servers with powerful API's using TypeScript and Express.",
+    "description": "Easily manage an Enterprise-grade Authentication Server",
     "main": "lib/src",
     "types": "lib/",
     "author": "Josh Merlino",

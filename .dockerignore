@@ -1,0 +1,5 @@
+\.*
+default/
+userdata/
+node_modules/
+lib/
