@@ -166,6 +166,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		});
 
 		res.json({ sessions });
+		return;
 
 	}
 
