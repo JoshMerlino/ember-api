@@ -156,6 +156,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		// Ensure getUser didnt reject the request
 		if (res.headersSent) return;
 
+		// Get sessions
 		let sessions = await query(`SELECT * FROM sessions WHERE user = ${user.id}`);
 		sessions = sessions.map(session => {
 			session.current_session = session.session_id === authorization;
@@ -165,11 +166,13 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			return session;
 		});
 
+		// Respond with sessions
 		res.json({ sessions });
 		return;
 
 	}
 
+	// Respond with 405
 	return res.status(405).json({
 		success: false,
 		message: "405 Method Not Allowed",
