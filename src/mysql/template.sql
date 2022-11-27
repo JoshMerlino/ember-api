@@ -7,7 +7,7 @@ CREATE TABLE `users`(
     `passwd_changed_ms` BIGINT UNSIGNED NOT NULL,
     `created_ms` BIGINT NOT NULL,
     `roles` TEXT NULL,
-    `administrator` TINYINT NOT NULL
+    `administrator` TINYINT NOT NULL DEFAULT 0
 );
 ALTER TABLE
     `users` ADD UNIQUE `users_id_unique`(`id`);
