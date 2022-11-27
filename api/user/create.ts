@@ -101,7 +101,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const now = Date.now();
 
 	// Insert into database
-	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms) VALUES (${uuid}, "${username}", "${email.toLowerCase()}", "${md5}", ${now}, ${password.length}, ${now});`);
+	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, administrator) VALUES (${uuid}, "${username}", "${email.toLowerCase()}", "${md5}", ${now}, ${password.length}, ${now}, 0);`);
 
 	// Respond with redirect to generate session
 	res.redirect(307, "/api/v1/user/session");
