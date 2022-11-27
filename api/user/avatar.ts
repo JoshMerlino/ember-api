@@ -123,6 +123,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		});
 
+		return;
+
 	}
 
 	// If user wants to DELETE pfp
