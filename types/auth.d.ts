@@ -1,7 +1,6 @@
 declare namespace Auth {
 
     declare type BitField<T> = number;
-
     declare const enum Flags {
         VERIFIED = 1 << 1,
         LOCKED = 1 << 2,
