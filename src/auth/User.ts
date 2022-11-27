@@ -58,7 +58,7 @@ export default class User {
     	this.passwd_length = userRow.passwd_length;
     	this.authorization = authorization || null;
     	this.roles = roles.map(role => <Auth.Role>role).filter(role => userRow.roles.split(":").includes(role.id.toString()));
-		this.flags = userRow.flags;
+		this.flags = userRow.flags || 0;
     	this.sessions = sessions.map(session => <Auth.Session><unknown>{ ...session, current: sessionRow && session.session_id === sessionRow.session_id });
 
 	}
@@ -106,6 +106,12 @@ export default class User {
 	// Boolean to determin if user has a permission bitfield
 	hasFlag(permission: Auth.Flags): boolean {
 		return [ ...this.roles, { flags: this.flags } ].filter(({ flags }) => flags & permission).length > 0;
+	}
+
+	async setFlag(flag: Auth.Flags, value: boolean): Promise<void> {
+		if (value) this.flags |= flag;
+		else this.flags &= ~flag;
+		await query(`UPDATE users SET flags = ${this.flags} WHERE id = ${this.id};`);
 	}
 
 	// Boolean to determin if user has a role

@@ -25,8 +25,23 @@ export default async function server(app: Express): Promise<void> {
 	const endpoints = await asyncRequireContext<Endpoint>("./lib/api").catch(() => []);
 	endpoints.map(function(endpoint) {
 		const routes = typeof endpoint.module.route === "string" ? [ endpoint.module.route ] : endpoint.module.route;
-		routes.map(route => app.all(`/api/${route}`, <Application><unknown>endpoint.module.default));
-		routes.map(route => app.all(`/${route}`, <Application><unknown>endpoint.module.default));
+		function apply(route: string, handler: RequestHandler) {
+			app.all(`/api/${route}`, handler);
+			app.all(`/${route}`, handler);
+		}
+		routes.map(route => apply(route, (a, b) => {
+			try {
+				endpoint.module.default(a, b);
+			} catch (e) {
+				console.error(e);
+				b.status(500).json({
+					success: false,
+					error: "500 Internal Server Error",
+					description: "An internal server error occurred.",
+					message: process.env.DEVELOPMENT ? e : "[Redacted]"
+				});
+			}
+		}));
 		console.info(chalk.greenBright("EDP"), "Added API endpoints from", chalk.cyan(endpoint.path));
 	});
 

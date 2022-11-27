@@ -63,12 +63,21 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			.replace(/%USERNAME%/g, user.username));
 
 		// Send message
-		await smtp.sendMail({
-			from: manifest.name,
-			to: [ user.email ],
-			subject: "Single-sign on link",
-			html
-		});
+		try {
+			await smtp.sendMail({
+				from: manifest.name,
+				to: [ user.email ],
+				subject: "Single-sign on link",
+				html
+			});
+		} catch (error) {
+			return res.status(500).json({
+				success: false,
+				message: "500 Internal Server Error",
+				description: "Failed to send email.",
+				error: process.env.DEVELOPMENT ? `${error}` : undefined
+			});
+		}
 
 		return res.json({ success: true });
 
@@ -106,8 +115,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${snowflake()}, "${session_id}", ${user.id}, "${user.passwd_md5}", ${now}, ${now}, "${req.header("User-Agent")}", "${req.ip}");`);
 
 		// Set verified flag on user
-		user.flags |= Auth.Flags.VERIFIED;
-		await query(`UPDATE users SET flags = ${ user.flags } WHERE id = ${user.id};`);
+		user.setFlag(Auth.Flags.VERIFIED, true);
 
 		// Set cookie
 		res.cookie("session_id", session_id, { maxAge: 1000*60*60*24*3650 });
