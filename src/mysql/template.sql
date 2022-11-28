@@ -8,7 +8,7 @@ CREATE TABLE `users`(
     `created_ms` BIGINT NOT NULL,
     `roles` TEXT NULL,
     `administrator` INT NOT NULL,
-    `flags` INT NOT NULL
+    `flags` INT NOT NULL DEFAULT '0'
 );
 ALTER TABLE
     `users` ADD UNIQUE `users_id_unique`(`id`);
