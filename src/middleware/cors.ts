@@ -2,8 +2,7 @@ import cors from "cors";
 
 // Export middleware
 export default cors({
-	origin: "*",
-	methods: [ "GET", "POST", "PUT", "DELETE", "PATCH" ],
-	credentials: true,
-	preflightContinue: true
+	origin: true,
+	allowedHeaders: [ "Content-Type", "Authorization", "Cookie" ],
+	credentials: true
 });
