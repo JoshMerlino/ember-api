@@ -2,7 +2,7 @@
 /* eslint camelcase: off */
 import { Request, Response } from "express";
 import { access, readdir, rm, writeFile } from "fs/promises";
-import { getExtension } from "mime";
+import mime from "mime-types";
 import mkdirp from "mkdirp";
 import path from "path";
 import getAuthorization from "../../src/auth/getAuthorization";
@@ -101,9 +101,9 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		req.on("end", async function() {
 
 			// Get extension
-		   	const ext = getExtension(TYPE);
+		   	const ext = mime.extension(TYPE);
 
-		   	if (TYPE.split("/")[0] !== "image" || ext === null) return res.status(415).json({
+		   	if (TYPE.split("/")[0] !== "image" || !ext) return res.status(415).json({
 				success: false,
 				error: "415 Unsupported Media Type",
 				description: "Uploaded file is not of 'image/*' type."
