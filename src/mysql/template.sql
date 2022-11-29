@@ -8,7 +8,7 @@ CREATE TABLE `users`(
     `created_ms` BIGINT NOT NULL,
     `roles` TEXT NULL,
     `administrator` INT NOT NULL,
-    `flags` INT NOT NULL DEFAULT '0'
+    `flags` INT NOT NULL
 );
 ALTER TABLE
     `users` ADD UNIQUE `users_id_unique`(`id`);
@@ -36,7 +36,8 @@ CREATE TABLE `sso`(
     `id` BIGINT UNSIGNED NOT NULL,
     `user` BIGINT UNSIGNED NOT NULL,
     `ssokey` TEXT NOT NULL,
-    `expires_after` BIGINT NOT NULL
+    `expires_after` BIGINT NOT NULL,
+    `prevent_authorization` INT NOT NULL
 );
 ALTER TABLE
     `sso` ADD UNIQUE `sso_id_unique`(`id`);
