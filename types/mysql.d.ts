@@ -37,6 +37,7 @@ declare namespace MySQLData {
 		user: number;
 		ssokey: string;
 		expires_after: number;
+		prevent_authorization: boolean;
 	}
 
 	declare interface Role {

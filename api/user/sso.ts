@@ -106,6 +106,12 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		await query(`DELETE FROM sso WHERE ssokey = "${token}";`);
 
+		// Set email verified flag on user
+		user.setFlag(Auth.Flags.VERIFIED, true);
+
+		// If their just confirming their email
+		if (sso.prevent_authorization) return res.redirect(redirect_uri!.toString());
+
 		// Generate session id
 		const session_id = uuid();
 
@@ -113,9 +119,6 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Insert into sessions
 		await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${snowflake()}, "${session_id}", ${user.id}, "${user.passwd_md5}", ${now}, ${now}, "${req.header("User-Agent")}", "${req.ip}");`);
-
-		// Set verified flag on user
-		user.setFlag(Auth.Flags.VERIFIED, true);
 
 		// Set cookie
 		res.cookie("session_id", session_id, { maxAge: 1000*60*60*24*3650 });

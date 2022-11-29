@@ -1,9 +1,15 @@
 /* eslint @typescript-eslint/no-explicit-any: off */
 import { Request, Response } from "express";
+import { readFile } from "fs/promises";
 import idealPasswd from "ideal-password";
+import { marked } from "marked";
+import path from "path";
+import manifest from "../../package.json";
 import { query } from "../../src/mysql";
+import smtp from "../../src/smpt";
 import hash from "../../src/util/hash";
 import snowflake from "../../src/util/snowflake";
+import { v4 } from "uuid";
 
 export const route = "v1/user/create";
 
@@ -102,6 +108,38 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Insert into database
 	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, administrator) VALUES (${uuid}, "${username}", "${email.toLowerCase()}", "${md5}", ${now}, ${password.length}, ${now}, 0);`);
+
+	// Create SSO token & expiry time
+	const sso = v4();
+	const expires_after = Date.now() + 1000*60*15;
+
+	// Insert SSO token to database
+	await query(`INSERT INTO sso (id, ssokey, user, expires_after, prevent_authorization) VALUES (${snowflake()}, "${sso}", ${uuid}, ${expires_after}, 1)`);
+
+	const template = await readFile(path.resolve("./api/user/create.md"), "utf8");
+
+	// Render message
+	const html = marked(template
+		.replace(/%APPNAME%/g, manifest.name)
+		.replace(/%SSOLINK%/g, `${req.protocol}://${req.hostname}/api/v1/user/sso?token=${sso}&redirect_uri=/verify-email-success`)
+		.replace(/%USERNAME%/g, username));
+
+	// Send message
+	try {
+		await smtp.sendMail({
+			from: manifest.name,
+			to: [ email.toLowerCase() ],
+			subject: "Confirm email link",
+			html
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			message: "500 Internal Server Error",
+			description: "Failed to send email.",
+			error: process.env.DEVELOPMENT ? `${error}` : undefined
+		});
+	}
 
 	// Respond with redirect to generate session
 	res.redirect(307, "/api/v1/user/session");
