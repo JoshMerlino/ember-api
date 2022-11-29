@@ -37,7 +37,7 @@ CREATE TABLE `sso`(
     `user` BIGINT UNSIGNED NOT NULL,
     `ssokey` TEXT NOT NULL,
     `expires_after` BIGINT NOT NULL,
-    `prevent_authorization` INT NOT NULL
+    `prevent_authorization` INT NOT NULL DEFAULT '0'
 );
 ALTER TABLE
     `sso` ADD UNIQUE `sso_id_unique`(`id`);
