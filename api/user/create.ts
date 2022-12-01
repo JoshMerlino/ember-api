@@ -61,7 +61,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Respond with redirect to generate session
 		if (md5 === user.passwd_md5) {
-			res.redirect(307, "/api/v1/user/session");
+			res.redirect(307, new URL("../session", fullurl).toString());
 			return;
 		}
 
@@ -143,6 +143,6 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	}
 
 	// Respond with redirect to generate session
-	res.redirect(307, "/api/v1/user/session");
+	res.redirect(307, new URL("../session", fullurl).toString());
 
 }
