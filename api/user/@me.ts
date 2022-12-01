@@ -12,6 +12,7 @@ export const route = "v1/user/@me";
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	const body = { ...req.body, ...req.query };
+	const fullurl = req.protocol + "://" + req.hostname + req.url;
 
 	// Check method
 	if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE" && req.method !== "POST") return res.status(405).json({
@@ -109,6 +110,10 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	}
 
 	// Send response
-	res.json(user);
+	res.json({
+		...user,
+		success: true,
+		avatar_url: fullurl.split("@me")[0] + user.id
+	});
 
 }

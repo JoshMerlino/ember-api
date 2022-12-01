@@ -10,6 +10,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Get fields
 	const body = { ...req.body, ...req.query };
+	const fullurl = req.protocol + "://" + req.hostname + req.url;
 	const { email } = body;
 
 	// Check method
@@ -53,5 +54,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		readable: `'${email.toLowerCase()}' is not a valid email address.`
 	});
 
-	res.json(user.toSafe());
+	res.json({
+		...user.toSafe(),
+		avatar_url: fullurl.split("@me")[0] + user.id
+	});
 }

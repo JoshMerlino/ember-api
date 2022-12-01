@@ -17,6 +17,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Parse the request
 	const body = { ...req.body, ...req.query };
+	const fullurl = req.protocol + "://" + req.hostname + req.url;
 
 	// Delete all expired sso tokens
 	await query(`DELETE FROM sso WHERE expires_after < ${Date.now()};`);
@@ -59,7 +60,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		// Render message
 		const html = marked(template
 			.replace(/%APPNAME%/g, manifest.name)
-			.replace(/%SSOLINK%/g, `${req.protocol}://${req.hostname}/api/v1/user/sso?token=${sso}&redirect_uri=${encodeURIComponent(redirect_uri)}`)
+			.replace(/%SSOLINK%/g, `${fullurl}?token=${sso}&redirect_uri=${encodeURIComponent(redirect_uri)}`)
 			.replace(/%USERNAME%/g, user.username));
 
 		// Send message

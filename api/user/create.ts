@@ -16,6 +16,7 @@ export const route = "v1/user/create";
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	const body = { ...req.body, ...req.query };
+	const fullurl = req.protocol + "://" + req.hostname + req.url;
 
 	// Make sure method is POST
 	if (req.method !== "POST") return res.status(405).json({
@@ -114,14 +115,14 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const expires_after = Date.now() + 1000*60*15;
 
 	// Insert SSO token to database
-	await query(`INSERT INTO sso (id, ssokey, user, expires_after, prevent_authorization) VALUES (${snowflake()}, "${sso}", ${uuid}, ${expires_after}, 1)`);
+	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${snowflake()}, "${sso}", ${uuid}, ${expires_after}, 1)`);
 
 	const template = await readFile(path.resolve("./api/user/create.md"), "utf8");
 
 	// Render message
 	const html = marked(template
 		.replace(/%APPNAME%/g, manifest.name)
-		.replace(/%SSOLINK%/g, `${req.protocol}://${req.hostname}/api/v1/user/sso?token=${sso}&redirect_uri=/verify-email-success`)
+		.replace(/%SSOLINK%/g, `${fullurl}?token=${sso}&redirect_uri=/verify-email-success`)
 		.replace(/%USERNAME%/g, username));
 
 	// Send message

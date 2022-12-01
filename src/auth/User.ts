@@ -21,8 +21,6 @@ export default class User {
 
 	public mfa_enabled: boolean;
 
-	public readonly avatar_url: string;
-
 	public email: string;
 
 	public sessions: Auth.Session[];
@@ -52,7 +50,6 @@ export default class User {
     	this.created_ms = userRow.created_ms;
     	this.email = userRow.email;
     	this.mfa_enabled = mfaRow !== undefined && mfaRow.pending === 0;
-    	this.avatar_url = `/api/v1/user/avatar/${userRow.id}`;
     	this.passwd_changed_ms = userRow.passwd_changed_ms;
     	this.passwd_md5 = userRow.passwd_md5;
     	this.passwd_length = userRow.passwd_length;
