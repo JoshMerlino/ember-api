@@ -1,0 +1,647 @@
+{
+    "_type": "export",
+    "__export_format": 4,
+    "__export_date": "2022-12-07T00:08:26.019Z",
+    "__export_source": "insomnia.desktop.app:v2022.6.0",
+    "resources": [
+        {
+            "_id": "req_1d12f35715184b34885ce763a79ccb3a",
+            "parentId": "fld_5954d360823c4480bb13f8d4f48fd212",
+            "modified": 1670371666038,
+            "created": 1625590277544,
+            "url": "{{ api_root }}/@me",
+            "name": "Get user",
+            "description": "Attempts to get the currently signed-in user.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n\t\"id\": 3498984026931200,\n\t\"username\": \"Josh\",\n\t\"created_ms\": 1668445599953,\n\t\"mfa_enabled\": false,\n\t\"avatar_url\": \"./avatar/3498984026931200\",\n\t\"email\": \"joshua.merlino@gmail.com\",\n\t\"sessions\": [ ... ],\n\t\"passwd_md5\": \"b3f1cda1-035c-54ea-a936-9a71416852ae\",\n\t\"passwd_length\": 9,\n\t\"passwd_changed_ms\": 1668445599953,\n\t\"authorization\": \"cce0b110-6442-11ed-9861-03ace2f44f7d\",\n\t\"roles\": [],\n\t\"flags\": 2\n}\n```",
+            "method": "GET",
+            "body": {
+                "mimeType": "application/json",
+                "text": ""
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622508164302,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_5954d360823c4480bb13f8d4f48fd212",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1626743775655,
+            "created": 1626743775655,
+            "name": "@me",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1626743775655,
+            "_type": "request_group"
+        },
+        {
+            "_id": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "parentId": null,
+            "modified": 1626823101182,
+            "created": 1625590277400,
+            "name": "Authentication Server",
+            "description": "Easily implement authentication into your app with this Authentication Server for NodeJS.",
+            "scope": "collection",
+            "_type": "workspace"
+        },
+        {
+            "_id": "req_31ae8dd3581840ed97337870e1d24f89",
+            "parentId": "fld_5954d360823c4480bb13f8d4f48fd212",
+            "modified": 1669867587724,
+            "created": 1626882983816,
+            "url": "{{ api_root }}/@me",
+            "name": "Delete account",
+            "description": "Attempts to delete the currently signed-in user.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"success\": true\n}\n```",
+            "method": "DELETE",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1622508164294.9688,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_f4342da5800f42519380500ce04dfc7c",
+            "parentId": "fld_5954d360823c4480bb13f8d4f48fd212",
+            "modified": 1670371194478,
+            "created": 1626653747992,
+            "url": "{{ api_root }}/@me",
+            "name": "Update user",
+            "description": "Attempts to modify the currently signed-in user.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Request body\n| field | required | type | description |\n| - | - | - | - |\n| `username` | no | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The new username to assign to the user. |\n| `email` | no | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The new email address to assign to the user. |\n| `password` | no | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The new password to assign to the user. |\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"id\": 0,\n    \"username\": \"...\",\n    \"email\": \"...\",\n    \"passwd_md5\": \"...\",\n    \"passwd_length\": 0,\n    \"passwd_changed_ms\": 0,\n    \"created_ms\": 0,\n    \"mfa_enabled\": false,\n    \"avatar_url\": \"...\",\n    \"authorization\": \"...\"\n}\n```",
+            "method": "PATCH",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"username\": \"Josh Merlino\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "id": "pair_d6f677c2c96349c4b62a967f42afbcae",
+                    "name": "Content-Type",
+                    "value": "application/json",
+                    "description": ""
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622508164252,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_f3da5de7d83a42118604df2424606d07",
+            "parentId": "fld_b2d49a84dd72469391ee760a250ae092",
+            "modified": 1669867601300,
+            "created": 1625590277479,
+            "url": "{{ api_root }}/avatar/3501566533304320",
+            "name": "get",
+            "description": "Gets the image of a users profile picture.\n\n## Request parameters\n| field | required | type | description |\n| - | - | - | - |\n| `:userid` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The user ID for the user that you want to recieve the profile picture for. |\n\n## Response\nResponse is the file uploaded by the user encoded as PNG.",
+            "method": "GET",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1622478346191,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_b2d49a84dd72469391ee760a250ae092",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1625590277473,
+            "created": 1625590277473,
+            "name": "avatar",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1622508164289.5,
+            "_type": "request_group"
+        },
+        {
+            "_id": "req_e87fd5a8e929423aa2a18d8a9e6a606b",
+            "parentId": "fld_b2d49a84dd72469391ee760a250ae092",
+            "modified": 1669867607916,
+            "created": 1625590277498,
+            "url": "{{ api_root }}/avatar",
+            "name": "reset",
+            "description": "Attempts to reset the currently signed-in user's profile picture to its default.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"success\": true\n}\n```",
+            "method": "DELETE",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1622478346141,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_5b102d7d84354f0a82aff544780f6517",
+            "parentId": "fld_b2d49a84dd72469391ee760a250ae092",
+            "modified": 1669867611654,
+            "created": 1625590277491,
+            "url": "{{ api_root }}/avatar",
+            "name": "upload",
+            "description": "Attempts to upload a new profile picture forthe currently signed-in user.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Request\n* The request must have the `Content-Type` header when uploading a file.\n* Request body should be file instance from the browser.\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"success\": true\n}\n```",
+            "method": "PUT",
+            "body": {
+                "mimeType": "application/octet-stream",
+                "fileName": "C:\\Users\\josh\\Downloads\\bitmoji-medres (1).png"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "image/png",
+                    "id": "pair_7dc2294f39584fdfa335130416262999"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622478346041,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_ef90487d0e6a4043b0c726903feccab5",
+            "parentId": "fld_878bbe07eed84bf2b7b907f2e3d62a68",
+            "modified": 1669867615683,
+            "created": 1626658975596,
+            "url": "{{ api_root }}/confirm-password",
+            "name": "Confirm password",
+            "description": "Confirms the currently signed-in users password.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Example request\n## Request body\n| field | required | type | description |\n| - | - | - | - |\n| `password` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The password to verify if its correct. |\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"success\": true,\n    \"requested_checksum\": \"...\",\n    \"local_checksum\": \"...\"\n}\n```",
+            "method": "POST",
+            "body": {},
+            "parameters": [],
+            "headers": [
+                {
+                    "id": "pair_5c0473ff0d3e4fe6ac0e33ff4a0e1af4",
+                    "name": "Content-Type",
+                    "value": "application/json",
+                    "description": ""
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622508164287.9375,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_878bbe07eed84bf2b7b907f2e3d62a68",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1626820336226,
+            "created": 1626820327892,
+            "name": "confirm-password",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1622508164287.9375,
+            "_type": "request_group"
+        },
+        {
+            "_id": "req_147b141579404de88105a1a8ee7cc9f4",
+            "parentId": "fld_b211c407a92e49a29a9da98aaecdb4dd",
+            "modified": 1670371490288,
+            "created": 1625590277550,
+            "url": "{{ api_root }}/create",
+            "name": "Create Account",
+            "description": "Creates a new user.\n\n## Request body\n| field | required | type | description |\n| - | - | - | - |\n| `username` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The username to assign to the user. |\n| `email` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The email address to assign to the user. |\n| `password` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The password to assign to the user. |\n\n## Successful response\nOn successful response, the server will issue an internal redirect *307* to `./session` endpoint. This will automaticly create a session and authenticate the newly created user.",
+            "method": "POST",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"username\": \"Josh\",\n\t\"email\": \"joshua.merlino@gmail.com\",\n\t\"password\": \"{{ _.password }}\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622508164277,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_b211c407a92e49a29a9da98aaecdb4dd",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1626821049306,
+            "created": 1626821031864,
+            "name": "create",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1622508164287.5469,
+            "_type": "request_group"
+        },
+        {
+            "_id": "req_c0757e817a38478faaea0ac9a25e0cd5",
+            "parentId": "fld_dc6ce50f9bc743b89a082797c8424a6c",
+            "modified": 1669869147500,
+            "created": 1626299853436,
+            "url": "{{ api_root }}/details",
+            "name": "Account details",
+            "description": "Gets public information about a user account by email address.\n\n## Request body\n| field | required | type | description |\n| - | - | - | - |\n| `email` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The email address of the user. |\n\n## Example responses\n### Example of a successful request:\n```json\n{\n    \"id\": 0,\n    \"username\": \"...\",\n    \"created_ms\": 0,\n    \"mfa_enabled\": false,\n    \"avatar_url\": \"...\",\n    \"email\": \"...\"\n}\n```",
+            "method": "POST",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"email\": \"joshua.merlino@gmail.com\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json",
+                    "id": "pair_7e9df2dbef014ea387afdc961091d726"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622508164286.375,
+            "isPrivate": false,
+            "settingStoreCookies": false,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_dc6ce50f9bc743b89a082797c8424a6c",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1626820747451,
+            "created": 1626820571884,
+            "name": "details",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1622508164287.1562,
+            "_type": "request_group"
+        },
+        {
+            "_id": "req_bfb19bf04d934255b7a54d8bc7705016",
+            "parentId": "fld_9d1b5d9f5e7f4cda9915b09f2302121c",
+            "modified": 1669867626471,
+            "created": 1625590277533,
+            "url": "{{ api_root }}/mfa",
+            "name": "Disable",
+            "description": "Disables Two-Factor Authentication for a user account.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successful request:\n```json\n{\n    \"success\": true\n}\n```",
+            "method": "DELETE",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1622350674563.9844,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_9d1b5d9f5e7f4cda9915b09f2302121c",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1625590277511,
+            "created": 1625590277511,
+            "name": "mfa",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1622448527942.5,
+            "_type": "request_group"
+        },
+        {
+            "_id": "req_78560825af1b496c8c3c10288db3271f",
+            "parentId": "fld_9d1b5d9f5e7f4cda9915b09f2302121c",
+            "modified": 1669867629824,
+            "created": 1625590277516,
+            "url": "{{ api_root }}/mfa",
+            "name": "Start setup",
+            "description": "Starts the enabling process for Two-Factor Authentication for the acccount.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"qr\": \"...\"\n}\n```",
+            "method": "POST",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1622350674463.9844,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_b3121a224569425eaa2f54653e82e30b",
+            "parentId": "fld_9d1b5d9f5e7f4cda9915b09f2302121c",
+            "modified": 1669867634337,
+            "created": 1625590277525,
+            "url": "{{ api_root }}/mfa",
+            "name": "Confirm setup",
+            "description": "Completes Two-Factor Authentication setup for an account.\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Request body\n| field | required | type | description |\n| - | - | - | - |\n| `token` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The token obtained from the 2fa app. |\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"success\": true\n}\n```\n",
+            "method": "PATCH",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"token\": \"663541\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json",
+                    "id": "pair_3aecaf3e9ade4b7ab3bea30777b69362"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622350674413.9844,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_8be75732db4b4cfeaf5379058e7a1652",
+            "parentId": "fld_44577b8fc6b34e22be73f1d3b0f1f55c",
+            "modified": 1670370874601,
+            "created": 1625590277451,
+            "url": "{{ api_root }}/session",
+            "name": "create",
+            "description": "Authorizes credentials and generates a session ID.\n\n## Body fields\n| field | required | type | description |\n| - | - | - | - |\n| `email` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The email address for the user. |\n| `password` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The password for the user. |\n| `token` | only if requested | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | Specifies the 2fa token for the authentication. |\n| `rememberme` | no | [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) | If specified, makes the session never expire. |\n\n## Successful response\nOn successful response, this endpoint will set a cookie *`session_id`* and internally redirect to `./@me`.\n",
+            "method": "POST",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"email\": \"joshua.merlino@gmail.com\",\n\t\"password\": \"{{ _.password }}\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "id": "pair_9e61bd1366a44a81aaffc42a4429b8cf",
+                    "name": "Content-Type",
+                    "value": "application/json",
+                    "description": ""
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622320943282.75,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_44577b8fc6b34e22be73f1d3b0f1f55c",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1626826176859,
+            "created": 1625590277446,
+            "name": "session",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1622433618858.875,
+            "_type": "request_group"
+        },
+        {
+            "_id": "req_be1b02f9a6884dcca11158116e0a92e9",
+            "parentId": "fld_44577b8fc6b34e22be73f1d3b0f1f55c",
+            "modified": 1670370861619,
+            "created": 1626743746062,
+            "url": "{{ api_root }}/session",
+            "name": "list",
+            "description": "Retrieves a list of all sessions that the user is logged in with (on any device).\n\n### Order of authentication\n1. **`Authorization` header.**\n    The authorization header accepts a `session_id`, a Session ID can be obtained from authenticating with the **PUT** `./session` endpont.\n2. **Session ID Cookie.** If no authorization header is sent, the endpoint will use the cookie `session_id` to authorize the request. The `session_id` cookie is automaticly set from the **PUT** `./session` endpont and will be stored and sent with subsequent requests in most browsers.\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"sessions\": [{\n        \"id\": 0,\n        \"session_id\": \"...\",\n        \"created_ms\": 0,\n        \"last_used_ms\": 0,\n        \"user_agent\": {\n            \"ua\": \"...\",\n            \"browser\": {},\n            \"engine\": {},\n            \"os\": {},\n            \"device\": {},\n            \"cpu\": {}\n        },\n        \"ip_address\": \"...\",\n        \"current_session\": false\n    }]\n}\n```",
+            "method": "GET",
+            "body": {},
+            "parameters": [],
+            "headers": [],
+            "authentication": {},
+            "metaSortKey": -1622320943257.75,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_a614922609464f00a239fdcc2d37b94d",
+            "parentId": "fld_44577b8fc6b34e22be73f1d3b0f1f55c",
+            "modified": 1669867643820,
+            "created": 1625590277460,
+            "url": "{{ api_root }}/session",
+            "name": "delete",
+            "description": "Revokes a session ID (logs out user).\n\n## Body fields\n| field | required | description |\n| - | - | - |\n| `session_id` | no | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The session ID to log out of. Defaults to the current session ID. |\n| `all` | no | [boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean) | If true, signs out of all sessions on all devices. |\n\n## Example responses\n### Example of a unauthenticated request:\n```json\n{\n    \"success\": false,\n    \"error\": \"401 Unauthorized\",\n    \"description\": \"You likley do not have a valid session token.\"\n}\n```\n\n### Example of a successfully authenticated request:\n```json\n{\n    \"success\": true\n}\n```",
+            "method": "DELETE",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"session_id\": \"b5901720-7005-11ed-8b8e-411cde0debf8\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json",
+                    "id": "pair_b13977522ec2420ca2ea27670ea3d994"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1622320943232.75,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "req_cdb1eed5d94243fab3af2695a335c25a",
+            "parentId": "fld_acc5e2dd7e4344d39584353d029c6cf7",
+            "modified": 1669868313199,
+            "created": 1626826142298,
+            "url": "{{ api_root }}/sso",
+            "name": "Create",
+            "description": "Creates a single-sign on link and emails it to the user.\n\n## Request body\n| field | required | type | description |\n| - | - | - | - |\n| `email` | yes | [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) | The email address of the user. |\n\n## Example responses\n### Example of a successful request:\n```json\n{\n    \"success\": true\n}\n```",
+            "method": "POST",
+            "body": {
+                "mimeType": "application/json",
+                "text": "{\n\t\"email\": \"joshua.merlino@gmail.com\",\n\t\"redirect_uri\": \"/@me\"\n}"
+            },
+            "parameters": [],
+            "headers": [
+                {
+                    "name": "Content-Type",
+                    "value": "application/json",
+                    "id": "pair_24006b1d6ba649419b15164042b25dd7"
+                }
+            ],
+            "authentication": {},
+            "metaSortKey": -1626826142299,
+            "isPrivate": false,
+            "settingStoreCookies": true,
+            "settingSendCookies": true,
+            "settingDisableRenderRequestBody": false,
+            "settingEncodeUrl": true,
+            "settingRebuildPath": true,
+            "settingFollowRedirects": "global",
+            "_type": "request"
+        },
+        {
+            "_id": "fld_acc5e2dd7e4344d39584353d029c6cf7",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1626826174752,
+            "created": 1626826137282,
+            "name": "sso",
+            "description": "",
+            "environment": {},
+            "environmentPropertyOrder": null,
+            "metaSortKey": -1622418709775.25,
+            "_type": "request_group"
+        },
+        {
+            "_id": "env_51d7336dbbbd426c82eecf0dc3a6bfe2",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1670371573857,
+            "created": 1625590277411,
+            "name": "Base Environment",
+            "data": {
+                "api_root": "https://auth.api.joshmerlino.me/api",
+                "password": "P@5Sw0rd$"
+            },
+            "dataPropertyOrder": {
+                "&": [
+                    "api_root",
+                    "password"
+                ]
+            },
+            "color": null,
+            "isPrivate": false,
+            "metaSortKey": 1622388677324,
+            "_type": "environment"
+        },
+        {
+            "_id": "jar_f78c61c6f9be445d85ea993c59054571",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1670370987882,
+            "created": 1625590277423,
+            "name": "Default Jar",
+            "cookies": [
+                {
+                    "key": "session_id",
+                    "value": "2df0c9b0-712f-11ed-8383-b5302eae0f31",
+                    "expires": "2022-12-08T04:18:16.000Z",
+                    "maxAge": 604800,
+                    "domain": "10.16.70.10",
+                    "path": "/",
+                    "hostOnly": true,
+                    "creation": "2022-11-14T01:39:00.072Z",
+                    "lastAccessed": "2022-12-01T04:18:16.031Z",
+                    "id": "9953919425680569"
+                },
+                {
+                    "key": "session_id",
+                    "value": "fdf1da60-7025-11ed-b94e-1d7f17b8ca88",
+                    "expires": "2022-12-06T20:39:59.000Z",
+                    "maxAge": 604800,
+                    "domain": "10.16.24.255",
+                    "path": "/",
+                    "hostOnly": true,
+                    "creation": "2022-11-27T05:25:56.375Z",
+                    "lastAccessed": "2022-11-29T20:39:59.725Z",
+                    "id": "574029540223677"
+                },
+                {
+                    "key": "session_id",
+                    "value": "99f74350-75c1-11ed-bd0f-3b92c02cb11a",
+                    "expires": "2022-12-13T23:56:29.000Z",
+                    "maxAge": 604800,
+                    "domain": "auth.api.joshmerlino.me",
+                    "path": "/",
+                    "hostOnly": true,
+                    "creation": "2022-12-01T04:32:34.998Z",
+                    "lastAccessed": "2022-12-06T23:56:27.881Z",
+                    "id": "14091101670613115"
+                }
+            ],
+            "_type": "cookie_jar"
+        },
+        {
+            "_id": "spc_a2c957139a5840a696bfd48042402c92",
+            "parentId": "wrk_7a8ca1831cb44b64a0813c3b668d2d8a",
+            "modified": 1625590277597,
+            "created": 1625590277435,
+            "fileName": "my-app",
+            "contents": "",
+            "contentType": "yaml",
+            "_type": "api_spec"
+        }
+    ]
+}
