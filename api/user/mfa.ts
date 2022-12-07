@@ -7,7 +7,7 @@ import path from "path";
 import { generateSecret, verifyToken } from "node-2fa";
 import snowflake from "../../src/util/snowflake";
 
-export const route = "v1/user/mfa";
+export const route = "mfa";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 

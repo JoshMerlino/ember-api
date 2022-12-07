@@ -10,7 +10,7 @@ import snowflake from "../../src/util/snowflake";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
 
-export const route = "v1/user/session";
+export const route = "session";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 

@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import { query } from "../../src/mysql";
 import User from "../../src/auth/User";
 
-export const route = "v1/user/details";
+export const route = "details";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 

@@ -11,7 +11,7 @@ import hash from "../../src/util/hash";
 import snowflake from "../../src/util/snowflake";
 import { v4 } from "uuid";
 
-export const route = "v1/user/create";
+export const route = "create";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 

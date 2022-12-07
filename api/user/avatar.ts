@@ -10,8 +10,8 @@ import User from "../../src/auth/User";
 import * as validate from "../../src/util/validate";
 
 export const route = [
-	"v1/user/avatar",
-	"v1/user/avatar/:userid"
+	"avatar",
+	"avatar/:userid"
 ];
 
 // Function to save the pfp to disk

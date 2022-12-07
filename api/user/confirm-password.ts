@@ -5,7 +5,7 @@ import getAuthorization from "../../src/auth/getAuthorization";
 import hash from "../../src/util/hash";
 import User from "../../src/auth/User";
 
-export const route = "v1/user/confirm-password";
+export const route = "confirm-password";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 

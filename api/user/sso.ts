@@ -11,7 +11,7 @@ import manifest from "../../package.json";
 import snowflake from "../../src/util/snowflake";
 import User from "../../src/auth/User";
 
-export const route = "v1/user/sso";
+export const route = "sso";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 
