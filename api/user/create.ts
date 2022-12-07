@@ -115,7 +115,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const expires_after = Date.now() + 1000*60*15;
 
 	// Insert SSO token to database
-	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${snowflake()}, "${sso}", ${uuid}, ${expires_after}, 1)`);
+	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${snowflake()}, "${sso}", ${uuid}, ${expires_after})`);
 
 	const template = await readFile(path.resolve("./api/user/create.md"), "utf8");
 
