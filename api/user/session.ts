@@ -16,7 +16,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Parse the request
 	const body = { ...req.body, ...req.query };
-	const fullurl = req.protocol + "://" + req.hostname + req.url;
+	const href = req.protocol + "://" + req.hostname + req.url;
 
 	// Make sure method is POST
 	if (req.method === "POST") {
@@ -88,7 +88,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		res.header("authorization", session_id);
 
 		// Respond with redirect to generate session
-		res.redirect(307, new URL("../session", fullurl).toString());
+		res.redirect(307, "./@me");
 		return;
 
 	}

@@ -16,7 +16,7 @@ export const route = "create";
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	const body = { ...req.body, ...req.query };
-	const fullurl = req.protocol + "://" + req.hostname + req.url;
+	const href = req.protocol + "://" + req.hostname + req.url;
 
 	// Make sure method is POST
 	if (req.method !== "POST") return res.status(405).json({
@@ -61,7 +61,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Respond with redirect to generate session
 		if (md5 === user.passwd_md5) {
-			res.redirect(307, new URL("../session", fullurl).toString());
+			res.redirect(307, "./session");
 			return;
 		}
 
@@ -122,7 +122,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Render message
 	const html = marked(template
 		.replace(/%APPNAME%/g, manifest.name)
-		.replace(/%SSOLINK%/g, `${fullurl}?token=${sso}&redirect_uri=/verify-email-success`)
+		.replace(/%SSOLINK%/g, `${href}?token=${sso}&redirect_uri=/verify-email-success`)
 		.replace(/%USERNAME%/g, username));
 
 	// Send message
@@ -143,6 +143,6 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	}
 
 	// Respond with redirect to generate session
-	res.redirect(307, new URL("../session", fullurl).toString());
+	res.redirect(307, "./session");
 
 }
