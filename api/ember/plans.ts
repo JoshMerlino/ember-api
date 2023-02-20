@@ -18,7 +18,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	if (!authorization || !user) return res.json({ authorized: false, packages });
 
 	// Get active subscription
-	const { active_subscription } = user;
+	const active_subscription = user.meta.value.active_subscription;
 	const active = active_subscription && await stripe.subscriptions.retrieve(active_subscription);
 
 	res.json({

@@ -42,5 +42,10 @@ declare namespace Auth {
         user_agent: UAParser.IResult;
         ip_address: string;
         current_session: boolean;
-    }
+	}
+	
+	declare interface Meta {
+		id: number;
+		active_subscription?: string;
+	}
 }

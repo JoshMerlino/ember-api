@@ -11,7 +11,7 @@ export type ConstructorArgs = {
     authorization?: string;
 }
 
-export default class User<Meta = Record<string, unknown>> {
+export default class User<Meta = Auth.Meta> {
 
 	private static __construct_signature = Symbol("ConstructSignature");
 
