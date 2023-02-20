@@ -1,9 +1,13 @@
 {
 	"compilerOptions": {
-		"lib": ["ES2022"],
+		"lib": [
+			"ES2022"
+		],
 		"module": "commonjs",
 		"target": "ES2022",
-		"types": ["node"],
+		"types": [
+			"node"
+		],
 		"outDir": "lib",
 		"jsx": "react",
 		"removeComments": true,
@@ -16,5 +20,8 @@
 		"resolveJsonModule": true,
 		"declaration": true
 	},
-	"exclude": ["node_modules", "lib"]
+	"exclude": [
+		"node_modules",
+		"lib"
+	]
 }
