@@ -4,7 +4,8 @@ import User from "../../src/auth/User";
 import { stripe } from "../../src/stripe";
 import fetchProducts, { Product } from "../../src/stripe/fetchProducts";
 
-let packages: Product[];
+let packages: Product[] | undefined;
+setInterval(() => packages = undefined, 1000 * 60);
 
 export const route = "ember/plans";
 
