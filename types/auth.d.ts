@@ -46,6 +46,6 @@ declare namespace Auth {
 	
 	declare interface Meta {
 		id: number;
-		active_subscription?: string;
+		subscription?: string;
 	}
 }
