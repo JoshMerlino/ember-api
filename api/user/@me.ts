@@ -2,10 +2,10 @@
 /* eslint camelcase: off */
 import { Request, Response } from "express";
 import idealPasswd from "ideal-password";
-import { query } from "../../src/mysql";
 import getAuthorization from "../../src/auth/getAuthorization";
-import hash from "../../src/util/hash";
 import User from "../../src/auth/User";
+import { query } from "../../src/mysql";
+import hash from "../../src/util/hash";
 
 export const route = "@me";
 
@@ -18,7 +18,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE" && req.method !== "POST") return res.status(405).json({
 		success: false,
 		message: "405 Method Not Allowed",
-		description: `Method '${req.method}' is not allowed on this endpoint.`
+		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 
 	// Verify authorization
@@ -45,7 +45,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const { username, password, email } = body;
 
 		// If change username
-		if (username) await query(`UPDATE users SET username = "${username}" WHERE id = ${user.id}`);
+		if (username) await query(`UPDATE users SET username = "${ username }" WHERE id = ${ user.id }`);
 
 		// If change email
 		if (email) {
@@ -53,21 +53,22 @@ export default async function api(req: Request, res: Response): Promise<any> {
 				success: false,
 				message: "406 Not Acceptable",
 				description: "Field 'email' expects type of 'EmailAddress' but received 'string'.",
-				readable: `Email '${email.toLowerCase()}' is not a valid email address.`
+				readable: `Email '${ email.toLowerCase() }' is not a valid email address.`
 			});
-			const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${email.toLowerCase()}";`);
+			const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email.toLowerCase() }";`);
 			if (users.filter(({ id }) => id !== user.id).length !== 0) {
 				return res.status(406).json({
 					success: false,
 					message: "406 Not Acceptable",
 					description: "Field 'email' must be unique.",
-					readable: `Email '${email.toLowerCase()}' is already being used. Did you mean to sign in?`
+					readable: `Email '${ email.toLowerCase() }' is already being used. Did you mean to sign in?`
 				});
 			}
-			await query(`UPDATE users SET email = "${email}" WHERE id = ${user.id}`);
+			await query(`UPDATE users SET email = "${ email }" WHERE id = ${ user.id }`);
 		}
 
 		if (password) {
+
 			// Determine password security
 			const { entropy, legal } = idealPasswd(password);
 
@@ -94,7 +95,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 			// Generate password hash
 			const md5 = hash(password);
-			await query(`UPDATE users SET passwd_md5 = "${md5}", passwd_length = ${password.length}, passwd_changed_ms = ${Date.now()} WHERE id = ${user.id}`);
+			await query(`UPDATE users SET passwd_md5 = "${ md5 }", passwd_length = ${ password.length }, passwd_changed_ms = ${ Date.now() } WHERE id = ${ user.id }`);
 		}
 
 		return res.json(await User.fromID(user.id));
@@ -102,10 +103,10 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	}
 
 	if (req.method === "DELETE") {
-		await query(`DELETE FROM mfa WHERE user = '${user.id}';`);
-		await query(`DELETE FROM sessions WHERE user = '${user.id}';`);
-		await query(`DELETE FROM sso WHERE user = '${user.id}';`);
-		await query(`DELETE FROM users WHERE id = '${user.id}';`);
+		await query(`DELETE FROM mfa WHERE user = '${ user.id }';`);
+		await query(`DELETE FROM sessions WHERE user = '${ user.id }';`);
+		await query(`DELETE FROM sso WHERE user = '${ user.id }';`);
+		await query(`DELETE FROM users WHERE id = '${ user.id }';`);
 		return res.json({ success: true });
 	}
 
@@ -113,7 +114,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	res.json({
 		...user,
 		success: true,
-		avatar_url: fullurl.split("@me")[0] + user.id
+		avatar_url: fullurl.replace(/@me$/g, `avatar/${ user.id }`)
 	});
 
 }
