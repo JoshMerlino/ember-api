@@ -1,8 +1,8 @@
 /* eslint @typescript-eslint/no-explicit-any: off */
 /* eslint camelcase: off */
 import { Request, Response } from "express";
-import { query } from "../../src/mysql";
 import User from "../../src/auth/User";
+import { query } from "../../src/mysql";
 
 export const route = "details";
 
@@ -17,7 +17,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (req.method !== "POST") return res.status(405).json({
 		success: false,
 		message: "405 Method Not Allowed",
-		description: `Method '${req.method}' is not allowed on this endpoint.`
+		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 
 	// Ensure getUser didnt reject the request
@@ -32,13 +32,13 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	});
 
 	// Lookup user
-	const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${email?.toLowerCase()}"`);
+	const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email?.toLowerCase() }"`);
 	if (userRow === undefined) {
 		return res.status(404).json({
 			success: false,
 			message: "404 Not Found",
 			description: "Specified user does not exist.",
-			readable: `'${email.toLowerCase()}' is not a valid email address.`
+			readable: `'${ email.toLowerCase() }' is not a valid email address.`
 		});
 	}
 
@@ -51,12 +51,12 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		success: false,
 		message: "404 Not Found",
 		description: "Specified user does not exist.",
-		readable: `'${email.toLowerCase()}' is not a valid email address.`
+		readable: `'${ email.toLowerCase() }' is not a valid email address.`
 	});
 
 	res.json({
 		...user.toSafe(),
-		avatar_url: fullurl.split("@me")[0] + user.id,
+		avatar_url: fullurl.replace(/\/details^/g, `avatar/${ user.id }`),
 		success: true
 	});
 }
