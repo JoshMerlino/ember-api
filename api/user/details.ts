@@ -56,6 +56,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	res.json({
 		...user.toSafe(),
-		avatar_url: fullurl.split("@me")[0] + user.id
+		avatar_url: fullurl.split("@me")[0] + user.id,
+		success: true
 	});
 }
