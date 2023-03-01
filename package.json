@@ -1,6 +1,6 @@
 {
     "name": "auth-server",
-    "version": "1.0.34",
+    "version": "1.0.35",
     "description": "Easily manage an Enterprise-grade Authentication Server",
     "main": "lib/src",
     "types": "lib/",
