@@ -56,7 +56,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	res.json({
 		...user.toSafe(),
-		avatar_url: fullurl.replace(/\/details^/g, `avatar/${ user.id }`),
+		avatar_url: fullurl.replace(/\/details$/g, `/avatar/${ user.id }`),
 		success: true
 	});
 }
