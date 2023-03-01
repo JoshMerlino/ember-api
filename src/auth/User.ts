@@ -92,6 +92,7 @@ export default class User<Meta = Record<string, unknown>> {
 		delete user.passwd_md5;
 		delete user.sessions;
 		delete user.roles;
+		delete user.meta;
 		return user;
 	}
 
