@@ -76,7 +76,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 				success: false,
 				message: "406 Not Acceptable",
 				description: "'password' contains invalid characters.",
-				password: "Please pick a new password."
+				readable: "Please pick a new password."
 			});
 
 			if (password.length < 8) return res.status(406).json({
