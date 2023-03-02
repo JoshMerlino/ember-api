@@ -98,7 +98,10 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			await query(`UPDATE users SET passwd_md5 = "${ md5 }", passwd_length = ${ password.length }, passwd_changed_ms = ${ Date.now() } WHERE id = ${ user.id }`);
 		}
 
-		return res.json(await User.fromID(user.id));
+		return res.json({
+			success: true,
+			...await User.fromID(user.id)
+		});
 
 	}
 
