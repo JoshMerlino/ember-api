@@ -128,11 +128,11 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		}
 
 		// Delete cookie
-		res.cookie("session_id", "", { maxAge: 0 });
+		if (session_id === getAuthorization(req)) res.cookie("session_id", "", { maxAge: 0 });
 
 		// Respond with session
 		return res.json({
-			error: false
+			success: true
 		});
 
 	}
