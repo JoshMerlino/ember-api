@@ -27,7 +27,7 @@ export default class User<Meta = Record<string, unknown>> {
 	public authorization: string | null;
 	public roles: Auth.Role[];
 	public flags: Auth.BitField<Auth.Flags>;
-	public meta: JSONStore<Meta>;
+	public meta: Meta;
 
 	constructor({ userRow, mfaRow, sessionRow, sessions, roles, authorization }: ConstructorArgs, __construct_signature: symbol) {
 
@@ -51,7 +51,7 @@ export default class User<Meta = Record<string, unknown>> {
 		this.sessions = sessions.map(session => <Auth.Session><unknown>{ ...session, current: sessionRow && session.session_id === sessionRow.session_id });
 		this.meta = JSONStore.from<Meta>(path.resolve("userdata/users/", `${ this.id }.json`), <Meta>{
 			id: this.id
-		});
+		}).value;
 
 	}
 
