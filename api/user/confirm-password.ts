@@ -2,10 +2,10 @@
 /* eslint camelcase: off */
 import { Request, Response } from "express";
 import getAuthorization from "../../src/auth/getAuthorization";
-import hash from "../../src/util/hash";
 import User from "../../src/auth/User";
+import hash from "../../src/util/hash";
 
-export const route = "confirm-password";
+export const route = "auth/confirm-password";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 
@@ -15,7 +15,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (req.method !== "POST") return res.status(405).json({
 		success: false,
 		message: "405 Method Not Allowed",
-		description: `Method '${req.method}' is not allowed on this endpoint.`
+		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 
 	// Verify authorization

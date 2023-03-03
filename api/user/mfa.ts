@@ -7,7 +7,7 @@ import path from "path";
 import { query } from "../../src/mysql";
 import snowflake from "../../src/util/snowflake";
 
-export const route = "mfa";
+export const route = "auth/mfa";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 

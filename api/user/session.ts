@@ -10,13 +10,12 @@ import { query } from "../../src/mysql";
 import hash from "../../src/util/hash";
 import snowflake from "../../src/util/snowflake";
 
-export const route = "session";
+export const route = "auth/session";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Parse the request
 	const body = { ...req.body, ...req.query };
-	const href = req.protocol + "://" + req.hostname + req.url;
 
 	// Make sure method is POST
 	if (req.method === "POST") {

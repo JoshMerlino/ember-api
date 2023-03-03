@@ -4,13 +4,12 @@ import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import { query } from "../../src/mysql";
 
-export const route = "details";
+export const route = "auth/details";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Get fields
 	const body = { ...req.body, ...req.query };
-	const fullurl = req.protocol + "://" + req.hostname + req.url;
 	const { email } = body;
 
 	// Check method
@@ -56,7 +55,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	res.json({
 		...user.toSafe(),
-		avatar_url: fullurl.replace(/\/details$/g, `/avatar/${ user.id }`),
+		avatar_url: req.url.replace(/\/details$/g, `/avatar/${ user.id }`),
 		success: true
 	});
 }

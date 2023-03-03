@@ -7,12 +7,11 @@ import User from "../../src/auth/User";
 import { query } from "../../src/mysql";
 import hash from "../../src/util/hash";
 
-export const route = "@me";
+export const route = "auth/@me";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	const body = { ...req.body, ...req.query };
-	const fullurl = req.protocol + "://" + req.hostname + req.url;
 
 	// Check method
 	if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE" && req.method !== "POST") return res.status(405).json({
@@ -117,7 +116,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	res.json({
 		...user,
 		success: true,
-		avatar_url: fullurl.replace(/@me$/g, `avatar/${ user.id }`)
+		avatar_url: req.url.replace(/@me$/g, `avatar/${ user.id }`)
 	});
 
 }

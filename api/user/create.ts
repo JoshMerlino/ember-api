@@ -4,14 +4,14 @@ import { readFile } from "fs/promises";
 import idealPasswd from "ideal-password";
 import { marked } from "marked";
 import path from "path";
+import { v4 } from "uuid";
 import manifest from "../../package.json";
 import { query } from "../../src/mysql";
 import smtp from "../../src/smpt";
 import hash from "../../src/util/hash";
 import snowflake from "../../src/util/snowflake";
-import { v4 } from "uuid";
 
-export const route = "create";
+export const route = "auth/create";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 
@@ -22,7 +22,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (req.method !== "POST") return res.status(405).json({
 		success: false,
 		message: "405 Method Not Allowed",
-		description: `Method '${req.method}' is not allowed on this endpoint. Use 'POST' instead.`
+		description: `Method '${ req.method }' is not allowed on this endpoint. Use 'POST' instead.`
 	});
 
 	// Get fields
@@ -34,8 +34,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (!body.hasOwnProperty(field) || body[field] === "") return res.status(406).json({
 			success: false,
 			message: "406 Not Acceptable",
-			description: `Field '${field}' is required but received 'undefined'.`,
-			readable: `Please enter a ${field}.`
+			description: `Field '${ field }' is required but received 'undefined'.`,
+			readable: `Please enter a ${ field }.`
 		});
 	});
 
@@ -50,11 +50,11 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		success: false,
 		message: "406 Not Acceptable",
 		description: "Field 'email' expects type of 'EmailAddress' but received 'string'.",
-		readable: `Email '${email.toLowerCase()}' is not a valid email address.`
+		readable: `Email '${ email.toLowerCase() }' is not a valid email address.`
 	});
 
 	// Select users with the same email address
-	const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${email.toLowerCase()}";`);
+	const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email.toLowerCase() }";`);
 
 	if (users.filter(user => user.email === email).length !== 0) {
 		const [ user ] = users.filter(user => user.email === email.toLowerCase());
@@ -69,7 +69,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			success: false,
 			message: "406 Not Acceptable",
 			description: "Field 'email' must be unique.",
-			readable: `Email '${email.toLowerCase()}' is already being used. Did you mean to sign in?`
+			readable: `Email '${ email.toLowerCase() }' is already being used. Did you mean to sign in?`
 		});
 
 	}
@@ -108,21 +108,21 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const now = Date.now();
 
 	// Insert into database
-	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms) VALUES (${uuid}, "${username}", "${email.toLowerCase()}", "${md5}", ${now}, ${password.length}, ${now});`);
+	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms) VALUES (${ uuid }, "${ username }", "${ email.toLowerCase() }", "${ md5 }", ${ now }, ${ password.length }, ${ now });`);
 
 	// Create SSO token & expiry time
 	const sso = v4();
-	const expires_after = Date.now() + 1000*60*15;
+	const expires_after = Date.now() + 1000 * 60 * 15;
 
 	// Insert SSO token to database
-	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${snowflake()}, "${sso}", ${uuid}, ${expires_after})`);
+	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${ snowflake() }, "${ sso }", ${ uuid }, ${ expires_after })`);
 
 	const template = await readFile(path.resolve("./api/user/create.md"), "utf8");
 
 	// Render message
 	const html = marked(template
 		.replace(/%APPNAME%/g, manifest.name)
-		.replace(/%SSOLINK%/g, `${href}?token=${sso}&redirect_uri=/verify-email-success`)
+		.replace(/%SSOLINK%/g, `${ href }?token=${ sso }&redirect_uri=/verify-email-success`)
 		.replace(/%USERNAME%/g, username));
 
 	// Send message
@@ -138,7 +138,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			success: false,
 			message: "500 Internal Server Error",
 			description: "Failed to send email.",
-			error: process.env.DEVELOPMENT ? `${error}` : undefined
+			error: process.env.DEVELOPMENT ? `${ error }` : undefined
 		});
 	}
 

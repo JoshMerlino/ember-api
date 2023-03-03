@@ -10,20 +10,20 @@ import User from "../../src/auth/User";
 import * as validate from "../../src/util/validate";
 
 export const route = [
-	"avatar",
-	"avatar/:userid"
+	"auth/avatar",
+	"auth/avatar/:userid"
 ];
 
 // Function to save the pfp to disk
 export async function savePfp(type: string, content: string | Buffer, id: number): Promise<boolean> {
 	if (Buffer.byteLength(content) > 2 ** 20 * 5) return false;
 	try {
-		await rm(path.resolve(`./userdata/avatar/${id}/`), { recursive: true });
+		await rm(path.resolve(`./userdata/avatar/${ id }/`), { recursive: true });
 	} catch (e) {
 		void e;
 	}
-	await mkdirp(path.resolve(`./userdata/avatar/${id}/`));
-	await writeFile(path.resolve(`./userdata/avatar/${id}/default.${type}`), content);
+	await mkdirp(path.resolve(`./userdata/avatar/${ id }/`));
+	await writeFile(path.resolve(`./userdata/avatar/${ id }/default.${ type }`), content);
 	return true;
 }
 
@@ -47,11 +47,11 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (!user) return res.status(406).json({
 			success: false,
 			error: "406 Not Acceptable",
-			description: `No user with ID '${userid}' exists.`
+			description: `No user with ID '${ userid }' exists.`
 		});
 
 		// Attempt to locate pfp
-		const pfpDir = path.resolve(`./userdata/avatar/${user.id}/`);
+		const pfpDir = path.resolve(`./userdata/avatar/${ user.id }/`);
 		const dir = await access(pfpDir)
 			.then(() => true)
 			.catch(() => false);
@@ -66,7 +66,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const defaultPfps = await readdir(path.resolve("./default/avatar/"));
 
 		// Get default avatar and send as response
-		const defaultPath = path.resolve(`./default/avatar/${defaultPfps[user.id % defaultPfps.length]}`);
+		const defaultPath = path.resolve(`./default/avatar/${ defaultPfps[user.id % defaultPfps.length] }`);
 		return res.sendFile(defaultPath);
 
 	}
@@ -101,25 +101,25 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		req.on("end", async function() {
 
 			// Get extension
-		   	const ext = mime.extension(TYPE);
+			const ext = mime.extension(TYPE);
 
-		   	if (TYPE.split("/")[0] !== "image" || !ext) return res.status(415).json({
+			if (TYPE.split("/")[0] !== "image" || !ext) return res.status(415).json({
 				success: false,
 				error: "415 Unsupported Media Type",
 				description: "Uploaded file is not of 'image/*' type."
 			});
 
 			// Try to save the avatar
-		   	const didSave = await savePfp(ext, Buffer.concat(data), user!.id);
+			const didSave = await savePfp(ext, Buffer.concat(data), user.id);
 
 			// If it failed to save
-		   	if (!didSave) return res.status(413).json({
+			if (!didSave) return res.status(413).json({
 				success: false,
 				error: "413 Payload Too Large",
 				description: "Uploaded file exceeds limit of 5 mb."
 			});
 
-		  	return res.json({ success: true });
+			return res.json({ success: true });
 
 		});
 
@@ -131,7 +131,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (req.method === "DELETE") {
 
 		// Delete old pfp
-		await rm(path.resolve(`./userdata/avatar/${user!.id}/`), { recursive: true });
+		await rm(path.resolve(`./userdata/avatar/${ user.id }/`), { recursive: true });
 
 		// Send success
 		return res.json({ success: true });
@@ -144,7 +144,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	return res.status(405).json({
 		success: false,
 		message: "405 Method Not Allowed",
-		description: `Method '${req.method}' is not allowed on this endpoint.`
+		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 
 }
