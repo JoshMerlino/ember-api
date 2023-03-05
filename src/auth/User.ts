@@ -49,10 +49,14 @@ export default class User<Meta = Auth.Meta> {
 		this.roles = roles.map(role => <Auth.Role>role).filter(role => userRow.roles.split(":").includes(role.id.toString()));
 		this.flags = userRow.flags || 0;
 		this.sessions = sessions.map(session => <Auth.Session><unknown>{ ...session, current: sessionRow && session.session_id === sessionRow.session_id });
-		this.meta = JSONStore.from<Meta>(path.resolve("userdata/users/", `${ this.id }.json`), <Meta>{
-			id: this.id
-		}).value;
+		this.meta = this.getMeta().value;
 
+	}
+
+	public getMeta() {
+		return JSONStore.from<Meta>(path.resolve("userdata/users/", `${ this.id }.json`), <Meta>{
+			id: this.id
+		});
 	}
 
 	// Get the user by the session ID
