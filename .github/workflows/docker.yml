@@ -20,7 +20,7 @@ jobs:
 
       - name: Build
         run: |
-          docker build -t jmer05/auth-server .
+          docker build -t jmer05/ember .
       - name: Push
         run: |
-          docker push jmer05/auth-server
+          docker push jmer05/ember
