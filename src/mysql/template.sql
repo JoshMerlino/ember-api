@@ -1,51 +1,169 @@
-CREATE TABLE `users`(
-    `id` BIGINT UNSIGNED NOT NULL,
-    `username` TEXT NOT NULL,
-    `email` TEXT NOT NULL,
-    `passwd_md5` TEXT NOT NULL,
-    `passwd_length` INT UNSIGNED NOT NULL,
-    `passwd_changed_ms` BIGINT UNSIGNED NOT NULL,
-    `created_ms` BIGINT NOT NULL,
-    `roles` TEXT NULL,
-    `administrator` INT NOT NULL DEFAULT '0',
-    `flags` INT NOT NULL DEFAULT '0'
-);
-ALTER TABLE
-    `users` ADD UNIQUE `users_id_unique`(`id`);
-CREATE TABLE `sessions`(
-    `id` BIGINT UNSIGNED NOT NULL,
-    `session_id` TEXT NOT NULL,
-    `user` BIGINT UNSIGNED NOT NULL,
-    `md5` TEXT NOT NULL,
-    `created_ms` BIGINT UNSIGNED NOT NULL,
-    `last_used_ms` BIGINT UNSIGNED NOT NULL,
-    `user_agent` TEXT NOT NULL,
-    `ip_address` TEXT NOT NULL
-);
-ALTER TABLE
-    `sessions` ADD UNIQUE `sessions_id_unique`(`id`);
-CREATE TABLE `mfa`(
-    `id` BIGINT UNSIGNED NOT NULL,
-    `user` BIGINT UNSIGNED NOT NULL,
-    `secret` TEXT NOT NULL,
-    `pending` TINYINT NOT NULL
-);
-ALTER TABLE
-    `mfa` ADD UNIQUE `mfa_id_unique`(`id`);
-CREATE TABLE `sso`(
-    `id` BIGINT UNSIGNED NOT NULL,
-    `user` BIGINT UNSIGNED NOT NULL,
-    `ssokey` TEXT NOT NULL,
-    `expires_after` BIGINT NOT NULL,
-    `prevent_authorization` INT NOT NULL DEFAULT '0'
-);
-ALTER TABLE
-    `sso` ADD UNIQUE `sso_id_unique`(`id`);
-CREATE TABLE `roles`(
-    `id` BIGINT UNSIGNED NOT NULL,
-    `name` TEXT NOT NULL,
-    `color` INT NOT NULL,
-    `flags` INT NOT NULL
-);
-ALTER TABLE
-    `roles` ADD UNIQUE `roles_id_unique`(`id`);
+-- phpMyAdmin SQL Dump
+-- version 5.2.0
+-- https://www.phpmyadmin.net/
+--
+-- Host: db
+-- Generation Time: Mar 07, 2023 at 04:47 AM
+-- Server version: 10.9.4-MariaDB-1:10.9.4+maria~ubu2204
+-- PHP Version: 8.0.25
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `embervpn`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `mfa`
+--
+
+CREATE TABLE `mfa` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user` bigint(20) UNSIGNED NOT NULL,
+  `secret` text NOT NULL,
+  `pending` tinyint(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `roles`
+--
+
+CREATE TABLE `roles` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `name` text NOT NULL,
+  `color` int(11) NOT NULL,
+  `flags` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sessions`
+--
+
+CREATE TABLE `sessions` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `session_id` text NOT NULL,
+  `user` bigint(20) UNSIGNED NOT NULL,
+  `md5` text NOT NULL,
+  `created_ms` bigint(20) UNSIGNED NOT NULL,
+  `last_used_ms` bigint(20) UNSIGNED NOT NULL,
+  `user_agent` text NOT NULL,
+  `ip_address` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sso`
+--
+
+CREATE TABLE `sso` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user` bigint(20) UNSIGNED NOT NULL,
+  `ssokey` text NOT NULL,
+  `expires_after` bigint(20) NOT NULL,
+  `prevent_authorization` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transactions`
+--
+
+CREATE TABLE `transactions` (
+  `id` int(11) NOT NULL,
+  `secret` text NOT NULL,
+  `user` bigint(20) NOT NULL,
+  `created_ms` bigint(20) NOT NULL,
+  `product` text NOT NULL,
+  `sessionid` text NOT NULL,
+  `used` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `username` text NOT NULL,
+  `email` text NOT NULL,
+  `passwd_md5` text NOT NULL,
+  `passwd_length` int(10) UNSIGNED NOT NULL,
+  `passwd_changed_ms` bigint(20) UNSIGNED NOT NULL,
+  `created_ms` bigint(20) NOT NULL,
+  `roles` text DEFAULT NULL,
+  `administrator` int(11) NOT NULL DEFAULT 0,
+  `flags` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `mfa`
+--
+ALTER TABLE `mfa`
+  ADD UNIQUE KEY `mfa_id_unique` (`id`);
+
+--
+-- Indexes for table `roles`
+--
+ALTER TABLE `roles`
+  ADD UNIQUE KEY `roles_id_unique` (`id`);
+
+--
+-- Indexes for table `sessions`
+--
+ALTER TABLE `sessions`
+  ADD UNIQUE KEY `sessions_id_unique` (`id`);
+
+--
+-- Indexes for table `sso`
+--
+ALTER TABLE `sso`
+  ADD UNIQUE KEY `sso_id_unique` (`id`);
+
+--
+-- Indexes for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD UNIQUE KEY `users_id_unique` (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `transactions`
+--
+ALTER TABLE `transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
