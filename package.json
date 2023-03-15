@@ -14,7 +14,7 @@
 		"watch-ts": "tsc -w",
 		"watch-js": "nodemon .",
 		"dev": "concurrently \"npm:watch-*\"",
-		"docker": "docker build . -t jmer05/auth-server && docker push jmer05/auth-server",
+		"docker": "docker build . -t jmer05/ember && docker push jmer05/ember",
 		"start": "node .",
 		"build": "tsc"
 	},
