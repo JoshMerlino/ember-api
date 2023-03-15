@@ -18,7 +18,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 
 	// Get the transaction secret
 	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
-	const subscription = body.subscription;
+	const subscription = body.subscription ?? user.getMeta().value.subscription;
 
 	// Make sure the plan is valid
 	if (!subscription) return res.status(400).json({
@@ -36,7 +36,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 			await stripe.subscriptions.del(subscription);
 
 			// Update the user
-			user.getMeta().value = { ...user.meta, subscription: undefined };
+			user.getMeta().value = { ...user.getMeta().value, subscription: undefined };
 
 			// Return the response
 			return res.json({ success: true });

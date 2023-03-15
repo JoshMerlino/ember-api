@@ -20,7 +20,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	});
 
 	// Get active subscription
-	const { subscription } = user.meta;
+	const { subscription } = user.getMeta();
 	const currentSubscription = subscription && await stripe.subscriptions.retrieve(subscription);
 
 	// Make sure the user dosnt already this subscription

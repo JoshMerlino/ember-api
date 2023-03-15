@@ -54,12 +54,12 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	await query(`UPDATE transactions SET used = 1 WHERE id = "${ subscription.id }";`);
 
 	// Unsubscribe from the old subscription
-	if (user.meta.subscription) await stripe.subscriptions.del(user.meta.subscription);
+	if (user.getMeta().subscription) await stripe.subscriptions.del(user.getMeta().subscription);
 	
 	// Get the session
 	const session = await stripe.checkout.sessions.retrieve(subscription.sessionid);
 
-	user.getMeta().value = { ...user.meta, subscription: session.subscription as string };
+	user.getMeta().value = { ...user.getMeta(), subscription: session.subscription as string };
 
 	// If method is get
 	if (req.method === "GET") {
