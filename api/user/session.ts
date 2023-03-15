@@ -21,7 +21,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (req.method === "POST") {
 
 		// Get fields
-		const { email, password, token } = body;
+		const { email, password, token, noredirect } = body;
 
 		// Ensure Fields are there
 		const requiredFields = [ "email", "password" ];
@@ -87,6 +87,13 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		res.header("authorization", session_id);
 
 		// Respond with redirect to generate session
+		if (noredirect) {
+			res.json({
+				success: true,
+				session_id
+			});
+			return;
+		}
 		res.redirect(307, "./@me");
 		return;
 
