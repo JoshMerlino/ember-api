@@ -53,19 +53,22 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	// Mark the secret as used
 	await query(`UPDATE transactions SET used = 1 WHERE id = "${ subscription.id }";`);
 
+	// Get the old subscription
+	const sub = user.getMeta().subscription;
+
 	// Unsubscribe from the old subscription
-	if (user.getMeta().subscription) await stripe.subscriptions.del(user.getMeta().subscription);
+	if (sub) await stripe.subscriptions.del(sub);
 	
 	// Get the session
 	const session = await stripe.checkout.sessions.retrieve(subscription.sessionid);
 
-	user.getMeta().value = { ...user.getMeta(), subscription: session.subscription as string };
+	user.setMeta("subscription", session.subscription as string);
 
 	// If method is get
 	if (req.method === "GET") {
 
 		// Redirect to thankyou page
-		return res.redirect(`/subscribe/${ subscription.product.split("_")[1] }/success`);
+		return res.redirect(`https://embervpn.org/subscribe/${ subscription.product.split("_")[1] }/success`);
 
 	}
 

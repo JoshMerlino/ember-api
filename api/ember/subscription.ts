@@ -18,7 +18,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 
 	// Get the transaction secret
 	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
-	const subscription = body.subscription ?? user.getMeta().value.subscription;
+	const subscription = body.subscription ?? user.getMeta().subscription;
 
 	// Make sure the plan is valid
 	if (!subscription) return res.status(400).json({
@@ -32,24 +32,16 @@ export default async function api(req: Request, res: Response): Promise<never | 
 
 		// Delete the subscription
 		try {
-
 			await stripe.subscriptions.del(subscription);
-
-			// Update the user
-			user.getMeta().value = { ...user.getMeta().value, subscription: undefined };
-
-			// Return the response
-			return res.json({ success: true });
-
 		} catch (error) {
-
-			// Return the response
-			return res.status(500).json({
-				success: false,
-				error: "500 Internal Server Error"
-			});
-
+			console.error(error);
 		}
+		
+		// Update the user
+		user.setMeta("subscription", undefined);
+
+		// Return the response
+		return res.json({ success: true });
 
 	}
 

@@ -69,8 +69,8 @@ export default async function api(req: Request, res: Response): Promise<never | 
 			secret,
 			user: user.id
 		},
-		success_url: `${ req.protocol }://${ host || req.hostname }/api/ember/redeem?secret=${ secret }`,
-		cancel_url: `${ req.protocol }://${ host || req.hostname }`,
+		success_url: `https://api.embervpn.org/ember/redeem?secret=${ secret }&authorization=${ authorization }`,
+		cancel_url: "https://embervpn.org",
 		line_items: [ {
 			quantity: 1,
 			price: item.startsWith("price_") ? item : pkg.default_price.id,

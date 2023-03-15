@@ -21,7 +21,7 @@ export async function lookupHost(host: string, user: User): Promise<Host> {
 	if (!user.getMeta().subscription) throw new Error("User does not have a subscription");
 
 	// Validate subscription
-	const subscription = await stripe.subscriptions.retrieve(user.getMeta().subscription);
+	const subscription = await stripe.subscriptions.retrieve(user.getMeta().subscription || "");
 	if (subscription.status !== "active") throw new Error("User does not have an active subscription");
 
 	// Make sure subscription has access to host
