@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { Request, Response } from "express";
-import { readFile, writeFile } from "fs/promises";
+import { writeFile } from "fs/promises";
 import mkdirp from "mkdirp";
 import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
@@ -37,7 +37,9 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		const host = await lookupHost(serverhash, user);
 	
 		// Get the private key
-		const privateKey = await readFile(resolve(process.env.HOME || "~", ".ssh/id_ed25519"), "utf8");
+		const privateKey = process.env.ED25519?.split(";").join("\n");
+
+		
 
 		// Connect to host
 		const connection = await ssh.connect({
