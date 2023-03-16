@@ -13,8 +13,6 @@ export default async function api(req: Request, res: Response): Promise<never | 
 		expand: [ "data.default_price", "data.price" ]
 	});
 
-	console.log(packages);
-	
 	// See if the user is authorized
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);
