@@ -2,7 +2,7 @@ name: Package version update
 
 on:
   push:
-    branches: [ master ]
+    branches: [ ember ]
 
 jobs:
   bump-version:
