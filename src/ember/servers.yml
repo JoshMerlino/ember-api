@@ -1,3 +1,6 @@
-sub_1MdcQXA0qzmbe0WtNDf5i06h:
-# sub_XXX:
-  - test
+- name: Test Server
+  location: us_east
+  ip: 10.16.169.10
+  proto: tcp
+  granted_to:
+  - 3516591962587136

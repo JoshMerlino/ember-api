@@ -17,7 +17,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	});
 
 	// Get host from request params
-	const hash = typeof req.query.config === "string" ? req.query.config : false;
+	const hash = req.query.hash ?? req.body.hash ?? req.query.config ?? req.body.config;
 
 	// If host is not a string, return 400
 	if (!hash) return res.status(400).json({

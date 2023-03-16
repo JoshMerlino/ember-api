@@ -22,11 +22,11 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	});
 
 	// Get host from request params
-	const hostname = typeof req.query.host === "string" ? req.query.host : false;
+	const serverhash = req.body.hash ?? req.query.hash;
 
 	// If host is not a string, return 400
-	if (!hostname) return res.status(400).json({
-		error: "Missing host",
+	if (!serverhash) return res.status(400).json({
+		error: "Missing hash",
 		success: false
 	});
 
@@ -34,7 +34,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	try {
 
 		// Get the host
-		const host = await lookupHost(hostname, user);
+		const host = await lookupHost(serverhash, user);
 	
 		// Get the private key
 		const privateKey = await readFile(resolve(process.env.HOME || "~", ".ssh/id_ed25519"), "utf8");
@@ -73,7 +73,8 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		
 		res.json({
 			success: true,
-			hash
+			hash,
+			config: Buffer.from(config).toString("base64")
 		});
 
 	} catch (error) {

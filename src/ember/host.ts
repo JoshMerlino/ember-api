@@ -1,16 +1,19 @@
+import { createHash } from "crypto";
 import { readFile } from "fs/promises";
 import { resolve } from "path";
 import YAML from "yaml";
 import User from "../auth/User";
 import { stripe } from "../stripe";
 
-let servers: Record<string, string[]>;
+let servers: Host[];
 setInterval(() => void servers, 1000 * 5);
 
 export interface Host {
 	ip: string;
 	port: string;
 	proto: "tcp" | "udp";
+	name: string;
+	granted_to: (string | number)[];
 }
 
 export async function lookupHost(host: string, user: User): Promise<Host> {
@@ -24,19 +27,15 @@ export async function lookupHost(host: string, user: User): Promise<Host> {
 	const subscription = await stripe.subscriptions.retrieve(user.getMeta().subscription || "");
 	if (subscription.status !== "active") throw new Error("User does not have an active subscription");
 
-	// Make sure subscription has access to host
-	if (!(servers[subscription.id] && servers[subscription.id].includes(host))) throw new Error(`Plan ${ subscription.id } does not have access to ${ host }`);
-		
-	// Return ip addresses
-	switch (host) {
-	default: throw new Error(`Unknown host: ${ host }`);
-	case "test":
-	case "default":
-		return {
-			ip: "10.16.169.10",
-			port: "3194",
-			proto: "tcp"
-		};
-	}
+	// Get the server
+	const server = servers.find(server => createHash("sha256").update(JSON.stringify(server)).digest("hex") === host);
+
+	// If the server does not exist, throw an error
+	if (!server) throw new Error(`Unknown host: ${ host }`);
+	
+	// If the user is not granted access to the server, throw an error
+	if (!(server.granted_to.includes(subscription.items.data[0].plan.product as string) || server.granted_to.includes(user.id))) throw new Error(`User is not granted access to ${ host }`);
+
+	return server;
 
 }
