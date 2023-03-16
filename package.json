@@ -1,10 +1,8 @@
 {
-	"name": "auth-server",
+	"name": "ember-api",
 	"version": "1.0.47",
-	"description": "Easily manage an Enterprise-grade Authentication Server",
+	"private": true,
 	"main": "lib/src",
-	"types": "lib/",
-	"author": "Josh Merlino",
 	"license": "ISC",
 	"repository": {
 		"type": "git",
