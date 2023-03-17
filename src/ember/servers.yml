@@ -1,8 +1,0 @@
-- name: Test Server
-  location: us_east
-  ip: 10.16.169.10
-  port: 3194
-  proto: tcp
-  granted_to:
-  - 3516591962587136
-  - 3519368851881984
