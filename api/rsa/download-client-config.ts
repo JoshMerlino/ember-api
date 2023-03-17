@@ -56,29 +56,35 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Generate the request & key
 	await vpn.execCommand(`./easyrsa --batch gen-req ${ user.id } nopass`, { cwd: "/root/easy-rsa" });
-	await vpn.execCommand(`cp ~/easy-rsa/pki/private/${ user.id }.key ~/client-configs/keys/`, { cwd: "/root/easy-rsa" });
+	await vpn.execCommand(`cp /root/easy-rsa/pki/private/${ user.id }.key /root/client-configs/keys/`, { cwd: "/root" });
 	
 	// Download the request
-	const { stdout: request } = await vpn.execCommand(`cat ~/easy-rsa/pki/reqs/${ user.id }.req`, { cwd: "/root/easy-rsa" });
-	const { stdout: key } = await vpn.execCommand(`cat ~/easy-rsa/pki/private/${ user.id }.key`, { cwd: "/root/easy-rsa" });
-	const { stdout: ta } = await vpn.execCommand("cat ~/client-configs/keys/ta.key", { cwd: "/root/easy-rsa" });
-	await vpn.execCommand(`cp ~/easy-rsa/pki/private/${ user.id }.key ~/client-configs/keys/`, { cwd: "/root/easy-rsa" });
+	const { stdout: request } = await vpn.execCommand(`cat /root/easy-rsa/pki/reqs/${ user.id }.req`, { cwd: "/root/easy-rsa" });
+	await vpn.execCommand(`cp /root/easy-rsa/pki/private/${ user.id }.key /root/client-configs/keys/`, { cwd: "/root" });
 
 	// Send request to CA
 	await writeFile(`/tmp/${ user.id }.req`, request, "utf8");
 	await ssh.putFile(`/tmp/${ user.id }.req`, `/tmp/${ user.id }.req`);
 	
 	// Sign the request
-	await ssh.execCommand(`~/easy-rsa/easyrsa --batch import-req /tmp/${ user.id }.req ${ user.id }`, { cwd: "/root/easy-rsa" });
-	await ssh.execCommand(`~/easy-rsa/easyrsa --batch sign-req client ${ user.id }`, { cwd: "/root/easy-rsa" });
+	await ssh.execCommand(`/root/easy-rsa/easyrsa --batch import-req /tmp/${ user.id }.req ${ user.id }`, { cwd: "/root/easy-rsa" });
+	await ssh.execCommand(`/root/easy-rsa/easyrsa --batch sign-req client ${ user.id }`, { cwd: "/root/easy-rsa" });
 	
 	// Download the certificate to the vpn
-	const { stdout: certificate } = await ssh.execCommand(`cat ~/easy-rsa/pki/issued/${ user.id }.crt`, { cwd: "/root/easy-rsa" });
-	const { stdout: ca } = await ssh.execCommand("cat ~/easy-rsa/pki/ca.crt", { cwd: "/root/easy-rsa" });
+	const { stdout: certificate } = await ssh.execCommand(`cat /root/easy-rsa/pki/issued/${ user.id }.crt`, { cwd: "/root/easy-rsa" });
+
+	// Send certificate to vpn
+	await writeFile(`/tmp/${ user.id }.crt`, certificate, "utf8");
+	await vpn.putFile(`/tmp/${ user.id }.crt`, `/root/client-configs/keys/${ user.id }.crt`);
+
+	// Send CA to vpn
+	const { stdout: ca } = await ssh.execCommand("cat /root/easy-rsa/pki/ca.crt", { cwd: "/root/easy-rsa" });
+	await writeFile("/tmp/ca.crt", ca, "utf8");
+	await vpn.putFile("/tmp/ca.crt", "/root/client-configs/keys/ca.crt");
 
 	const chash = createHash("sha256").update(certificate).digest("hex");
 	await writeFile(`/tmp/${ chash }`, certificate, "utf8");
-	await vpn.putFile(`/tmp/${ chash }`, `~/client-configs/keys/${ user.id }.crt`);
+	await vpn.putFile(`/tmp/${ chash }`, `/root/client-configs/keys/${ user.id }.crt`);
 
 	// Read config
 	const config = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
@@ -93,9 +99,15 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// .split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n"));
 
-	// Write base config to ~/client-configs/base.conf on the vpn
+	// Write base config to /root/client-configs/base.conf on the vpn
 	await writeFile("/tmp/base.conf", config, "utf8");
-	await vpn.putFile("/tmp/base.conf", "~/client-configs/base.conf");
+	await vpn.putFile("/tmp/base.conf", "/root/client-configs/base.conf");
+
+	// Build config
+	await vpn.execCommand(`./make_config.sh ${ user.id }`, { cwd: "/root/client-configs" });
+	
+	// Download config
+	const { stdout } = await vpn.execCommand(`cat /root/client-configs/files/${ user.id }.ovpn`, { cwd: "/root/client-configs" });
 
 	vpn.dispose();
 	ssh.dispose();
@@ -104,13 +116,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		success: true,
 		server,
 		user: user.toSafe(),
-		config: Buffer.from([
-			config,
-			"<ca>", ca, "</ca>",
-			"<cert>", certificate, "</cert>",
-			"<key>", key, "</key>",
-			"<tls-crypt>", ta, "</tls-crypt>"
-		].join("\n")).toString("base64")
+		config: Buffer.from(stdout).toString("base64")
 	});
 	
 }
