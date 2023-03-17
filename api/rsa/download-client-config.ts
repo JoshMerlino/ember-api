@@ -55,7 +55,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	});
 
 	// Generate the request & key
-	await vpn.execCommand(`./easyrsa --batch gen-req ${ user.id } nopass`, { cwd: "/root/easy-rsa" });
+	await vpn.execCommand(`EASYRSA_REQ_CN=u@${ user.id } ./easyrsa --batch gen-req ${ user.id } nopass`, { cwd: "/root/easy-rsa" });
 	await vpn.execCommand(`cp /root/easy-rsa/pki/private/${ user.id }.key /root/client-configs/keys/`, { cwd: "/root" });
 	
 	// Download the request
@@ -66,6 +66,9 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	await writeFile(`/tmp/${ user.id }.req`, request, "utf8");
 	await ssh.putFile(`/tmp/${ user.id }.req`, `/tmp/${ user.id }.req`);
 	
+	// Purge old certificates requests
+	await ssh.execCommand(`rm /root/easy-rsa/pki/reqs/${ user.id }.req`, { cwd: "/root/easy-rsa" });
+
 	// Sign the request
 	await ssh.execCommand(`/root/easy-rsa/easyrsa --batch import-req /tmp/${ user.id }.req ${ user.id }`, { cwd: "/root/easy-rsa" });
 	await ssh.execCommand(`/root/easy-rsa/easyrsa --batch sign-req client ${ user.id }`, { cwd: "/root/easy-rsa" });
