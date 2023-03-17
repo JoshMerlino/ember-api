@@ -1,8 +1,9 @@
 {
-    "ignore": [
+	"ignore": [
 		"lib/insomnia-viewer-site/",
 		"cache/",
 		"docs/",
-		"src/"
+		"src/",
+		"userdata/"
 	]
 }
