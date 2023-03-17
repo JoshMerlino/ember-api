@@ -5,7 +5,6 @@ import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
-import * as ssh from "../../src/ssh";
 
 export const route = "rsa/download-client-config";
 
@@ -40,7 +39,14 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		message: `You are not allowed to access server '${ hash }'`
 	});
 
-	// TODO: generate and download client config
+	// Download the CA certificate
+	const ssh = new NodeSSH();
+	await ssh.connect({
+		host: "ca.embervpn.org",
+		username: "root",
+		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8"),
+	});
+
 	const vpn = new NodeSSH();
 	await vpn.connect({
 		host: server.ip,
@@ -58,16 +64,17 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const { stdout: ta } = await vpn.execCommand("cat ~/client-configs/keys/ta.key", { cwd: "/root/easy-rsa" });
 	await vpn.execCommand(`cp ~/easy-rsa/pki/private/${ user.id }.key ~/client-configs/keys/`, { cwd: "/root/easy-rsa" });
 
-	// Send to the CA server
-	await ssh.writeFile(`/tmp/${ user.id }.req`, request);
+	// Send request to CA
+	await writeFile(`/tmp/${ user.id }.req`, request, "utf8");
+	await ssh.putFile(`/tmp/${ user.id }.req`, `/tmp/${ user.id }.req`);
 	
 	// Sign the request
-	await ssh.exec(`~/easy-rsa/easyrsa --batch import-req /tmp/${ user.id }.req ${ user.id }`);
-	await ssh.exec(`~/easy-rsa/easyrsa --batch sign-req client ${ user.id }`);
+	await ssh.execCommand(`~/easy-rsa/easyrsa --batch import-req /tmp/${ user.id }.req ${ user.id }`, { cwd: "/root/easy-rsa" });
+	await ssh.execCommand(`~/easy-rsa/easyrsa --batch sign-req client ${ user.id }`, { cwd: "/root/easy-rsa" });
 	
 	// Download the certificate to the vpn
-	const certificate = await ssh.readFile(`~/easy-rsa/pki/issued/${ user.id }.crt`);
-	const ca = await ssh.readFile("~/easy-rsa/pki/ca.crt");
+	const { stdout: certificate } = await ssh.execCommand(`cat ~/easy-rsa/pki/issued/${ user.id }.crt`, { cwd: "/root/easy-rsa" });
+	const { stdout: ca } = await ssh.execCommand("cat ~/easy-rsa/pki/ca.crt", { cwd: "/root/easy-rsa" });
 
 	const chash = createHash("sha256").update(certificate).digest("hex");
 	await writeFile(`/tmp/${ chash }`, certificate, "utf8");
@@ -86,6 +93,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		.split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n"));
 
 	vpn.dispose();
+	ssh.dispose();
 
 	res.json({
 		success: true,
