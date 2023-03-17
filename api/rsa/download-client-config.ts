@@ -91,7 +91,13 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		success: true,
 		server,
 		user: user.toSafe(),
-		config: Buffer.from([ certificate,	ca,	ta,	key, config ].join("\n")).toString("base64")
+		config: Buffer.from([
+			config,
+			"<ca>", ca, "</ca>",
+			"<cert>", certificate, "</cert>",
+			"<key>", key, "</key>",
+			"<tls-crypt>", ta, "</tls-crypt>"
+		].join("\n")).toString("base64")
 	});
 	
 }
