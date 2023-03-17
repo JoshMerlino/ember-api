@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import { readFile, writeFile } from "fs/promises";
 import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
-import { accessMap } from "../../src/auth/accessMap";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
 import * as ssh from "../../src/ssh";
@@ -11,6 +10,8 @@ import * as ssh from "../../src/ssh";
 export const route = "rsa/download-client-config";
 
 export default async function api(req: Request, res: Response): Promise<any> {
+
+	const accessMap: Record<string, string[]> = JSON.parse(await readFile(resolve("./userdata/accessMap.json"), "utf8"));
 
 	// See if the user is authorized
 	const authorization = getAuthorization(req);

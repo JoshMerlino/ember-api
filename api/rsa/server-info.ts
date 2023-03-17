@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import { readFile } from "fs/promises";
 import { resolve } from "path";
-import { accessMap } from "../../src/auth/accessMap";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
 export const route = "rsa/server-info";
 
 export default async function api(req: Request, res: Response): Promise<any> {
+
+	const accessMap: Record<string, string[]> = JSON.parse(await readFile(resolve("./userdata/accessMap.json"), "utf8"));
 
 	// See if the user is authorized
 	const authorization = getAuthorization(req);
