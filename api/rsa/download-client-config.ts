@@ -76,7 +76,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	await writeFile(`/tmp/${ user.id }.crt`, cert);
 	
 	// Upload to the VPN server
-	await vpn.putFile(`/tmp/${ user.id }.crt`, `~/client-configs/keys/${ user.id }.crt`);
+	await vpn.putFile(`/tmp/${ user.id }.crt`, `/root/client-configs/keys/${ user.id }.crt`);
 	
 	// Copy the latest TA and CA certificates
 	await vpn.execCommand("cp ~/easy-rsa/ta.key ~/client-configs/keys/", { cwd: "/root" });
