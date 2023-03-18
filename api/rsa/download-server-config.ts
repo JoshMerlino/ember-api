@@ -11,7 +11,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// read config
 	try {
 
-		const config = await readFile(resolve(`./userdata/.tmp.${ hash }.conf`), "utf8");
+		const config = await readFile(resolve(`./userdata/${ hash }.conf`), "utf8");
 		
 		// send config
 		res.setHeader("Content-Type", "text/plain");
@@ -19,7 +19,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		res.send(config);
 		
 		// Destroy file
-		await unlink(resolve(`./userdata/.tmp.${ hash }.conf`));
+		await unlink(resolve(`./userdata/${ hash }.conf`));
 	
 	} catch (e) {
 		res.status(404).json({

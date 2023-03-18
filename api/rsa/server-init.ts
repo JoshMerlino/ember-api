@@ -39,7 +39,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const hash = createHash("sha256").update(config).digest("hex");
 
 	// Write config
-	await writeFile(resolve(`./userdata/.tmp.${ hash }.conf`), config, "utf8");
+	await writeFile(resolve(`./userdata/${ hash }.conf`), config, "utf8");
 
 	res.json({
 		success: true,

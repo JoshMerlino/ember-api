@@ -98,9 +98,10 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		.replace(/{{ iface }}/g, server.iface)
 		.replace(/{{ subnet }}/g, server.subnet)
 		.replace(/{{ network }}/g, server.network)
-		.replace(/{{ hostname }}/g, server.hostname));
-
-	// .split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n"));
+		.replace(/{{ hostname }}/g, server.hostname)
+		
+		// .split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n")
+	);
 
 	// Write base config to /root/client-configs/base.conf on the vpn
 	await writeFile("/tmp/base.conf", config, "utf8");
