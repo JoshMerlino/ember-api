@@ -89,7 +89,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	await vpn.execCommand(`./make_config.sh ${ user.id }`, { cwd: "/root/client-configs" });
 	
 	// Download the config
-	const { stdout: ovpn } = await ssh.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" });
+	const { stdout: ovpn } = await vpn.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" });
 	await writeFile(`/tmp/${ user.id }.ovpn`, ovpn);
 	
 	const config = await readFile(`/tmp/${ user.id }.ovpn`, "base64");
