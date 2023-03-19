@@ -82,23 +82,39 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Copy the latest TA and CA certificates
 	await vpn.execCommand("cp /etc/openvpn/server/{ta.key,ca.crt} ~/client-configs/keys/", { cwd: "/root" });
 	
+	// Send the updated client config base to the VPN server
+	const { ip, hostname, iface, proto, port, network, subnet } = server;
+	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
+		.replace(/{{ ip }}/g, ip)
+		.replace(/{{ id }}/g, hash)
+		.replace(/{{ port }}/g, port)
+		.replace(/{{ proto }}/g, proto)
+		.replace(/{{ iface }}/g, iface)
+		.replace(/{{ subnet }}/g, subnet)
+		.replace(/{{ network }}/g, network)
+		.replace(/{{ hostname }}/g, hostname)
+		.split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n")
+	);
+
+	// Write clientConfig to tmp && upload
+	await writeFile("/tmp/base.conf", clientConfig);
+	await vpn.putFile("/tmp/base.conf", "/tmp/base.conf");
+	await vpn.execCommand("cp /tmp/base.conf ~/client-configs/", { cwd: "/root" });
+
 	// Chown
-	await vpn.execCommand("sudo chown root:root ~/client-configs/keys/*", { cwd: "/root" });
+	await vpn.execCommand("chown root:root ~/client-configs/keys/*", { cwd: "/root" });
 
 	// Make the config
 	await vpn.execCommand(`./make_config.sh ${ user.id }`, { cwd: "/root/client-configs" });
 	
 	// Download the config
 	const { stdout: ovpn } = await vpn.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" });
-	await writeFile(`/tmp/${ user.id }.ovpn`, ovpn);
-	
-	const config = await readFile(`/tmp/${ user.id }.ovpn`, "base64");
 
 	res.json({
 		success: true,
 		server,
 		user: user.toSafe(),
-		config
+		config: Buffer.from(ovpn).toString("base64")
 	});
 	
 }
