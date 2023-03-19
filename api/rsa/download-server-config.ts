@@ -32,7 +32,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		.replace(/{{ subnet }}/g, subnet)
 		.replace(/{{ network }}/g, network)
 		.replace(/{{ hostname }}/g, hostname)
-		.split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n")
+
+		// .split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n")
 	);
 
 	res.json({
