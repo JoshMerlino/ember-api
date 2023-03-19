@@ -37,6 +37,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	res.json({
 		success: true,
+		hash: id,
 		config: Buffer.from(config).toString("base64"),
 		ed25519: `${ Buffer.from(process.env.CA_PUB_ED25519 || "", "base64").toString("utf8") } ember_ca`,
 	});
