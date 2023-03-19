@@ -31,8 +31,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		error: "404 Not Found",
 		message: `Server '${ hash }' not found`
 	});
-
-	if (!accessMap[user.id].includes(hash)) return res.status(403).json({
+ 
+	if (!(accessMap[user.id] || []).includes(hash)) return res.status(403).json({
 		success: false,
 		error: "403 Forbidden",
 		message: `You are not allowed to access server '${ hash }'`
@@ -52,9 +52,9 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		username: "root",
 		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8"),
 	});
-
+	
 	// Generate the request
-	await vpn.execCommand("mkdir -p ~/client-configs/keys");
+	await vpn.execCommand("mkdir -fp ~/client-configs/keys");
 	await vpn.execCommand("chmod -R 700 ~/client-configs");
 	await vpn.execCommand(`./easyrsa --batch --req-cn="u@${ user.id }" gen-req ${ user.id } nopass`, { cwd: "/root/easy-rsa" });
 	await vpn.execCommand(`cp ~/easy-rsa/pki/private/${ user.id }.key ~/client-configs/keys/`, { cwd: "/root" });
@@ -67,7 +67,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	await ssh.putFile(`/tmp/${ user.id }.req`, `/tmp/${ user.id }.req`);
 	await ssh.execCommand(`rm ./pki/reqs/${ user.id }.req`, { cwd: "/root/easy-rsa" });
 	await ssh.execCommand(`./easyrsa --batch import-req /tmp/${ user.id }.req ${ user.id }`, { cwd: "/root/easy-rsa" });
-
+	
 	// Sign the request
 	await ssh.execCommand(`./easyrsa --batch sign-req client ${ user.id }`, { cwd: "/root/easy-rsa" });
 	
@@ -76,12 +76,12 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	await writeFile(`/tmp/${ user.id }.crt`, cert);
 	
 	// Upload to the VPN server
-	await vpn.putFile(`/tmp/${ user.id }.crt`, `/root/client-configs/keys/${ user.id }.crt`);
+	await vpn.putFile(`/tmp/${ user.id }.crt`, `/tmp/${ user.id }.crt`);
+	await vpn.execCommand(`cp /tmp/${ user.id }.crt ~/client-configs/keys/`, { cwd: "/root" });
 	
 	// Copy the latest TA and CA certificates
-	await vpn.execCommand("cp ~/easy-rsa/ta.key ~/client-configs/keys/", { cwd: "/root" });
-	await vpn.execCommand("cp /etc/openvpn/server/ca.crt ~/client-configs/keys/", { cwd: "/root" });
-
+	await vpn.execCommand("cp /etc/openvpn/server/{ta.key,ca.crt} ~/client-configs/keys/", { cwd: "/root" });
+	
 	// Chown
 	await vpn.execCommand("sudo chown root:root ~/client-configs/keys/*", { cwd: "/root" });
 
