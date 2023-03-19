@@ -6,6 +6,7 @@ declare namespace Ember {
         subnet: string;
         port: string;
         proto: string;
-        hostname: string;
+		hostname: string;
+		location: unknown;
     }
 }

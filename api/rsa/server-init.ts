@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { Request, Response } from "express";
 import { readFile, writeFile } from "fs/promises";
+import fetch from "node-fetch";
 import { resolve } from "path";
 
 export const route = "rsa/server-init";
@@ -17,9 +18,14 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		return;
 	}
 	
+	// Get Location from https://api.ipgeolocation.io/ipgeo
+	const location = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${ process.env.IP_GEO_KEY }&ip=${ ip }`)
+		.then(res => res.json())
+		.catch(() => {});
+
 	// Read servers
 	const servers = JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
-	servers[id] = { ...server, hash: id, location: [ "United States", "east", "XX" ]};
+	servers[id] = { ...server, hash: id, location };
 	await writeFile(resolve("./userdata/servers.json"), JSON.stringify(servers, null, 4));
 
 	// Read config

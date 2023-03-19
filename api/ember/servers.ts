@@ -7,9 +7,9 @@ import { stripe } from "../../src/stripe";
 
 export const route = "ember/servers";
 
-let servers: Ember.Server[];
+let servers: Ember.Server[] | undefined;
 
-setInterval(() => void servers, 1000 * 5);
+setInterval(() => servers = undefined, 1000 * 5);
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
 	
