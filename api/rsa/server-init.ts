@@ -19,7 +19,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	
 	// Read servers
 	const servers = JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
-	servers[id] = server;
+	servers[id] = { ...server, hash: id };
 	await writeFile(resolve("./userdata/servers.json"), JSON.stringify(servers, null, 4));
 
 	// Read config
