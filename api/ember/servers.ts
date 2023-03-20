@@ -23,13 +23,6 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		error: "Unauthorized",
 		success: false
 	});
-	
-	// Make sure the user has a subscription
-	if (!user.getMeta().subscription) return res.status(400).json({
-		success: false,
-		error: "400 Bad Request",
-		message: "User does not have a subscription"
-	});
 
 	// Validate subscription
 	const subscription = await stripe.subscriptions.retrieve(user.getMeta().subscription || "");
