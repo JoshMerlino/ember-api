@@ -4,6 +4,7 @@ import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import { isAllowed } from "../ember/servers";
 
 export const route = "rsa/download-client-config";
 
@@ -32,7 +33,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		message: `Server '${ hash }' not found`
 	});
  
-	if (!(accessMap[user.id] || []).includes(hash)) return res.status(403).json({
+	if (!(await isAllowed(server, user))) return res.status(403).json({
 		success: false,
 		error: "403 Forbidden",
 		message: `You are not allowed to access server '${ hash }'`
