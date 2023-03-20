@@ -7,13 +7,13 @@ import { stripe } from "../../src/stripe";
 
 export const route = "ember/servers";
 
-let servers: Ember.Server[] | undefined;
+let servers: Record<string, Ember.Server> | undefined = {};
 
 setInterval(() => servers = undefined, 1000 * 5);
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
 	
-	servers = servers || JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
+	servers = servers || JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8")) as Record<string, Ember.Server>;
 
 	// Ensure authorization
 	const authorization = getAuthorization(req);
@@ -38,9 +38,24 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		message: "User does not have an active subscription"
 	});
 
+	const usersServers: Record<string, Ember.Server> = {};
+
+	for (const server of Object.values(servers)) {
+		if (await isAllowed(server, user)) usersServers[server.hash] = server;
+	}
+
 	res.json({
 		success: true,
-		servers
+		servers: usersServers
+
 	});
 
+}
+
+async function isAllowed(server: Ember.Server, user: User<Auth.Meta>): Promise<false | Ember.Server> {
+	const accessMap: Record<string, string[]> = JSON.parse(await readFile(resolve("./userdata/accessMap.json"), "utf8"));
+	if (!accessMap[user.id]) return false;
+	if (!accessMap[user.id].includes(server.hash)) return false;
+	if (!accessMap[user.id].includes("*")) return false;
+	return server;
 }
