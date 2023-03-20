@@ -4,14 +4,12 @@ import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
-import { isAllowed } from "../ember/servers";
+import { isAllowed } from "../../src/ember/isAllowed";
 
 export const route = "rsa/download-client-config";
 
 export default async function api(req: Request, res: Response): Promise<any> {
-
-	const accessMap: Record<string, string[]> = JSON.parse(await readFile(resolve("./userdata/accessMap.json"), "utf8"));
-
+	
 	// See if the user is authorized
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);

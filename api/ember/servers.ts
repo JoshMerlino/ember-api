@@ -3,6 +3,7 @@ import { readFile } from "fs/promises";
 import { resolve } from "path";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import { isAllowed } from "../../src/ember/isAllowed";
 import { stripe } from "../../src/stripe";
 
 export const route = "ember/servers";
@@ -50,11 +51,3 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 }
 
-export async function isAllowed(server: Ember.Server, user: User<Auth.Meta>): Promise<false | Ember.Server> {
-	const accessMap: Record<string, string[]> = JSON.parse(await readFile(resolve("./userdata/accessMap.json"), "utf8"));
-	if (accessMap[user.id].includes(server.hash)) return server;
-	if (accessMap[user.id].includes(server.ip)) return server;
-	if (accessMap[user.id].includes(server.hash)) return server;
-	if (accessMap[user.id].includes("*")) return server;
-	return false;
-}
