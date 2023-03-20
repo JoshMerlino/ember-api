@@ -4,7 +4,8 @@ import { readFile } from "fs/promises";
 import idealPasswd from "ideal-password";
 import { marked } from "marked";
 import path from "path";
-import { v4 } from "uuid";
+import { v1, v4 } from "uuid";
+
 import manifest from "../../package.json";
 import { query } from "../../src/mysql";
 import smtp from "../../src/smpt";
@@ -26,7 +27,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	});
 
 	// Get fields
-	const { username, email, password } = body;
+	const { username, email, password, noredirect } = body;
 
 	// Ensure Fields are there
 	const requiredFields = [ "username", "email", "password" ];
@@ -61,6 +62,24 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Respond with redirect to generate session
 		if (md5 === user.passwd_md5) {
+
+			if (noredirect) {
+
+				// Generate session id
+				const session_id = v1();
+
+				const now = Date.now();
+
+				// Insert into sessions
+				await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${ snowflake() }, "${ session_id }", ${ user.id }, "${ md5 }", ${ now }, ${ now }, "${ req.header("User-Agent") }", "${ req.ip }");`);
+				
+				res.json({
+					success: true,
+					session_id
+				});
+				return;
+			}
+
 			res.redirect(307, "./session");
 			return;
 		}
