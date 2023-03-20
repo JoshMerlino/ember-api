@@ -56,8 +56,13 @@ export default class User<Meta = Auth.Meta> {
 
 	public getMeta() {
 		mkdirp(path.resolve("userdata/users/"));
-		const store = readFileSync(path.resolve("userdata/users/", `${ this.id }.json`), "utf-8");
-		return this.meta = JSON.parse(store) as Meta;
+		try {
+			const store = readFileSync(path.resolve("userdata/users/", `${ this.id }.json`), "utf-8");
+			return this.meta = JSON.parse(store) as Meta;
+		} catch (e) {
+			writeFileSync(path.resolve("userdata/users/", `${ this.id }.json`), JSON.stringify({}), "utf-8");
+			return {} as Meta;
+		}
 	}
 	
 	public setMeta(key: keyof Meta, value: Meta[keyof Meta]) {
