@@ -1,6 +1,6 @@
 {
 	"name": "ember-api",
-	"version": "1.0.75",
+	"version": "1.0.76",
 	"private": true,
 	"main": "lib/src",
 	"license": "ISC",
