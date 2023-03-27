@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { readFile } from "fs/promises";
+import { Socket } from "net";
 import { resolve } from "path";
-import { inetLatency } from "systeminformation";
 import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
 import { isAllowed } from "../../src/ember/isAllowed";
@@ -12,8 +12,18 @@ let servers: Record<string, Ember.Server> | undefined = {};
 
 setInterval(() => servers = undefined, 1000 * 5);
 
-export const ping = (server: Ember.Server) => new Promise<false | number>(resolve => {
-	inetLatency(server.ip, resolve);
+export const ping = (server: Ember.Server) => new Promise<number | false>(resolve => {
+	
+	const start = Date.now();
+	const socket = new Socket();
+	socket.setTimeout(1000);
+	socket.connect(parseInt(server.port), server.ip, () => {
+		socket.end();
+		resolve(Date.now() - start);
+	});
+	socket.on("error", () => resolve(false));
+	socket.on("timeout", () => resolve(false));
+
 });
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
