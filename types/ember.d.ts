@@ -8,6 +8,7 @@ declare namespace Ember {
 		proto: string
 		hostname: string
 		hash: string
+		ping: number | false;
 		location: Location
 	}
 
