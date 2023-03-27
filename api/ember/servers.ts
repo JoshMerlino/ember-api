@@ -13,8 +13,7 @@ let servers: Record<string, Ember.Server> | undefined = {};
 setInterval(() => servers = undefined, 1000 * 5);
 
 export const ping = (server: Ember.Server) => new Promise<false | number>(resolve => {
-	inetLatency(server.ip).then(resolve).catch(() => resolve(false));
-	setTimeout(() => resolve(false), 1000);
+	inetLatency(server.ip, resolve);
 });
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
@@ -31,13 +30,12 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 	const usersServers: Record<string, Ember.Server> = {};
 	for (const server of Object.values(servers)) {
-		if (await isAllowed(server, user)) {
-			const ms = await ping(server);
-			if (ms) {
-				usersServers[server.hash] = { ...server, ping: ms };
-			}
-		}
+		if (await isAllowed(server, user)) usersServers[server.hash] = server;
 	}
+
+	await Promise.all(Object.values(usersServers).map(async server => {
+		if (servers && !servers[server.hash].ping) servers[server.hash].ping = await ping(server);
+	}));
 
 	res.json({
 		success: true,
