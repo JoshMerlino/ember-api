@@ -15,13 +15,18 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		repo: "releases",
 		path: "win32"
 	}).then(a => Array.from(a.data as RepoFile[])
-		.map(({ name, download_url }) => ({
-			name, download_url, version: name
+		.map(({ name }) => {
+			const version = name
 				.split(/\W/)
 				.map(a => parseInt(a))
 				.filter(a => !isNaN(a))
-				.join(".")
-		})));
+				.join(".");
+			return {
+				name,
+				download_url: `https://media.githubusercontent.com/media/EmberVPN/releases/master/win32/embervpn-client-${ version }-win32-setup.exe`,
+				version
+			};
+		}));
 
 	interface RepoFile {
 		name: string;
