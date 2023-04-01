@@ -19,7 +19,8 @@ export default async function api(req: Request, res: Response): Promise<void | R
 			name, download_url, version: name
 				.split(/\W/)
 				.map(a => parseInt(a))
-				.filter(a => !isNaN(a)).join(".")
+				.filter(a => !isNaN(a))
+				.join(".")
 		})));
 
 	interface RepoFile {
