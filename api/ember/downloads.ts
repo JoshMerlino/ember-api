@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 export const route = "ember/downloads";
 
 const client = new Octokit({
-	auth: process.env.GITHUB_TOKEN,
+	auth: process.env.GITHUB_PAT,
 });
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
