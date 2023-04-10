@@ -5,8 +5,8 @@ import { access, readdir, rm, writeFile } from "fs/promises";
 import mime from "mime-types";
 import mkdirp from "mkdirp";
 import path from "path";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import * as validate from "../../src/util/validate";
 
 export const route = [
@@ -131,7 +131,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (req.method === "DELETE") {
 
 		// Delete old pfp
-		await rm(path.resolve(`./userdata/avatar/${ user.id }/`), { recursive: true });
+		await rm(path.resolve(`./userdata/avatar/${ user.id }/`), { recursive: true })
+			.catch(e => void e);
 
 		// Send success
 		return res.json({ success: true });
