@@ -6,17 +6,45 @@ on:
 
 jobs:
 
-  bump-version:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: "Lint"
+        run: |
+          git config --global user.name 'CI/CD'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          npm run lint || true
+          git commit -am "Eslint: fix all" || true
+          git push || true
+
+  version:
     name: 'Bump Version on master'
     runs-on: ubuntu-latest
-
+    needs: lint
     steps:
       - name: 'Checkout source code'
         uses: 'actions/checkout@v2'
         with:
           ref: ${{ github.ref }}
       - name: 'Automated Version Bump'
-        id: version-bump
+        id: version
         uses: 'phips28/gh-action-bump-version@master'
         with:
           skip-tag: 'true'
@@ -24,13 +52,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Output Step'
         env:
-          NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
+          NEW_TAG: ${{ steps.version.outputs.newTag }}
         run: echo "new tag $NEW_TAG"
 
   docker-push:
     name: Push to Docker Hub
     runs-on: ubuntu-latest
-    needs: bump-version
+    needs: version
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
