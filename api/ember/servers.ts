@@ -13,9 +13,9 @@ let servers: Record<string, Ember.Server> | undefined = {};
 setInterval(() => servers = undefined, 1000 * 5);
 
 export const ping = (server: Ember.Server) => new Promise<number | false>(resolve => {
-	
+
 	const start = Date.now();
-	const socket = new Socket();
+	const socket = new Socket;
 	socket.setTimeout(1000);
 	socket.connect(parseInt(server.port), server.ip, () => {
 		socket.end();
@@ -27,7 +27,7 @@ export const ping = (server: Ember.Server) => new Promise<number | false>(resolv
 });
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
-	
+
 	servers = servers || JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8")) as Record<string, Ember.Server>;
 
 	// Ensure authorization
@@ -53,4 +53,3 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	});
 
 }
-

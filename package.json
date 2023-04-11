@@ -10,6 +10,7 @@
 	},
 	"scripts": {
 		"watch-ts": "tsc -w",
+		"lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
 		"watch-js": "nodemon .",
 		"dev": "concurrently \"npm:watch-*\"",
 		"docker": "docker build . -t jmer05/ember && docker push jmer05/ember",

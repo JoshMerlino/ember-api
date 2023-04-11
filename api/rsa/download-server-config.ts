@@ -10,14 +10,15 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	const server = req.body;
 	const { ip, hostname, iface, proto, port, network, subnet } = server;
-	const hash = createHash("sha256").update(JSON.stringify(req.body)).digest("hex");
+	const hash = createHash("sha256").update(JSON.stringify(req.body))
+		.digest("hex");
 
 	// Make sure its POST
 	if (req.method !== "POST") {
 		res.status(405).send("Method Not Allowed");
 		return;
 	}
-	
+
 	const location = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${ process.env.IP_GEO_KEY }&ip=${ ip }`)
 		.then(res => res.json())
 		.catch(console.error);
@@ -45,7 +46,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		success: true,
 		hash: hash,
 		config: Buffer.from(config).toString("base64"),
-		ed25519: `${ Buffer.from(process.env.CA_PUB_ED25519 || "", "base64").toString("utf8") } ember_ca`,
+		ed25519: `${ Buffer.from(process.env.CA_PUB_ED25519 || "", "base64").toString("utf8") } ember_ca`
 	});
-	
+
 }

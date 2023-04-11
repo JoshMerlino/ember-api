@@ -17,17 +17,29 @@ export default class User<Meta = Auth.Meta> {
 	private static __construct_signature = Symbol("ConstructSignature");
 
 	public readonly id: number;
+
 	public username: string;
+
 	public readonly created_ms: number;
+
 	public mfa_enabled: boolean;
+
 	public email: string;
+
 	public sessions: Auth.Session[];
+
 	public passwd_md5: string;
+
 	public passwd_length: number;
+
 	public passwd_changed_ms: number;
+
 	public authorization: string | null;
+
 	public roles: Auth.Role[];
+
 	public flags: Auth.BitField<Auth.Flags>;
+
 	public meta: Meta;
 
 	constructor({ userRow, mfaRow, sessionRow, sessions, roles, authorization }: ConstructorArgs, __construct_signature: symbol) {
@@ -51,7 +63,7 @@ export default class User<Meta = Auth.Meta> {
 		this.flags = userRow.flags || 0;
 		this.sessions = sessions.map(session => <Auth.Session><unknown>{ ...session, current: sessionRow && session.session_id === sessionRow.session_id });
 		this.meta = this.getMeta();
-		
+
 	}
 
 	public getMeta() {
@@ -64,9 +76,9 @@ export default class User<Meta = Auth.Meta> {
 			return {} as Meta;
 		}
 	}
-	
+
 	public setMeta(key: keyof Meta, value: Meta[keyof Meta]) {
-		
+
 		mkdirp(path.resolve("userdata/users/"));
 		const store = readFileSync(path.resolve("userdata/users/", `${ this.id }.json`), "utf-8");
 		const meta = JSON.parse(store) as Meta;

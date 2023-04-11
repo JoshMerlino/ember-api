@@ -20,7 +20,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	const hash = req.query.server ?? req.body.server;
 
-	// get server from servers
+	// Get server from servers
 	const servers: Ember.Server[] = JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
 	const server = servers[hash];
 
@@ -35,10 +35,10 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		error: "403 Forbidden",
 		message: `You are not allowed to access server '${ hash }'`
 	});
-	
+
 	res.json({
 		success: true,
 		server
 	});
-	
+
 }

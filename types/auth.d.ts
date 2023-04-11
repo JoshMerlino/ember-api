@@ -43,7 +43,7 @@ declare namespace Auth {
         ip_address: string;
         current_session: boolean;
 	}
-	
+
 	declare interface Meta {
 		id: number;
 		subscription?: string;

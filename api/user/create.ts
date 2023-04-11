@@ -72,7 +72,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 				// Insert into sessions
 				await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${ snowflake() }, "${ session_id }", ${ user.id }, "${ md5 }", ${ now }, ${ now }, "${ req.header("User-Agent") }", "${ req.ip }");`);
-				
+
 				res.json({
 					success: true,
 					session_id

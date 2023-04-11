@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 export const route = "ember/downloads";
 
 const client = new Octokit({
-	auth: process.env.GITHUB_PAT,
+	auth: process.env.GITHUB_PAT
 });
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
@@ -21,15 +21,15 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		.map(a => parseInt(a))
 		.filter(a => !isNaN(a))
 		.join(".");
-	
-	// list all files in repo EmberVPN/releases
+
+	// List all files in repo EmberVPN/releases
 	const win32 = await Promise.all(await client.rest.repos.getContent({
 		owner: "EmberVPN",
 		repo: "releases",
 		path: "win32"
 	}).then(async a => Array.from(a.data as RepoFile[])
 
-		// sort by version
+		// Sort by version
 		.sort((a, b) => {
 			const aVersion = v(a.name);
 			const bVersion = v(b.name);
@@ -44,13 +44,13 @@ export default async function api(req: Request, res: Response): Promise<void | R
 			}
 			return 0;
 		})
-		
+
 		// Map to file info
 		.map(async file => ({
 			name: file.name,
 			sha: file.sha,
 			version: v(file.name),
-			download_url: `https://media.githubusercontent.com/media/EmberVPN/releases/master/win32/${ file.name }`,
+			download_url: `https://media.githubusercontent.com/media/EmberVPN/releases/master/win32/${ file.name }`
 		}))));
 
 	res.json({

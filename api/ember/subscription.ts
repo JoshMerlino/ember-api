@@ -36,7 +36,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 		} catch (error) {
 			console.error(error);
 		}
-		
+
 		// Update the user
 		user.setMeta("subscription", undefined);
 

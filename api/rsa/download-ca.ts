@@ -5,11 +5,11 @@ export const route = "rsa/download-ca";
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Download the CA certificate
-	const ssh = new NodeSSH();
+	const ssh = new NodeSSH;
 	await ssh.connect({
 		host: "ca.embervpn.org",
 		username: "root",
-		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8"),
+		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8")
 	});
 
 	// Download CA

@@ -42,13 +42,11 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	});
 
 	// Get the plan
-	// const pkg = item.startsWith("prod_") ? await stripe.products.retrieve(item) : await stripe.prices.retrieve(item, { expand: "data.product" }).then(r => r.product);
+	// Const pkg = item.startsWith("prod_") ? await stripe.products.retrieve(item) : await stripe.prices.retrieve(item, { expand: "data.product" }).then(r => r.product);
 
 	// Dont look if u dont have to
 	const pkg = item.startsWith("price_") ? await stripe.prices.retrieve(item, { expand: [ "product" ]})
-		.then(r => r.product as Stripe.Product & { default_price: Stripe.Price })
-		: item.startsWith("prod_") ? await stripe.products.retrieve(item, { expand: [ "default_price" ]}) as Stripe.Product & { default_price: Stripe.Price }
-			: undefined;
+		.then(r => r.product as Stripe.Product & { default_price: Stripe.Price }): item.startsWith("prod_") ? await stripe.products.retrieve(item, { expand: [ "default_price" ]}) as Stripe.Product & { default_price: Stripe.Price }: undefined;
 
 	// Make sure the plan is valid
 	if (!pkg) return res.status(400).json({
@@ -73,7 +71,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 		cancel_url: "https://embervpn.org",
 		line_items: [ {
 			quantity: 1,
-			price: item.startsWith("price_") ? item : pkg.default_price.id,
+			price: item.startsWith("price_") ? item : pkg.default_price.id
 		} ]
 	});
 

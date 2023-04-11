@@ -27,7 +27,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 	// Attempt to connect to host
 	try {
-	
+
 		const config = resolve("userdata/configs", `${ hash }.ovpn`);
 		const raw = await readFile(config, "utf8");
 		res.header("Content-Type", "application/x-openvpn-profile");
@@ -36,7 +36,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 	} catch (error) {
 		res.status(500).json({
-			error: (<Error>error).toString(),
+			error: <Error>error.toString(),
 			success: false
 		});
 	}

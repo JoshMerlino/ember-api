@@ -28,11 +28,12 @@ export async function lookupHost(host: string, user: User): Promise<Host> {
 	if (subscription.status !== "active") throw new Error("User does not have an active subscription");
 
 	// Get the server
-	const server = servers.find(server => createHash("sha256").update(JSON.stringify(server)).digest("hex") === host);
+	const server = servers.find(server => createHash("sha256").update(JSON.stringify(server))
+		.digest("hex") === host);
 
 	// If the server does not exist, throw an error
 	if (!server) throw new Error(`Unknown host: ${ host }`);
-	
+
 	// If the user is not granted access to the server, throw an error
 	if (!(server.granted_to.includes(subscription.items.data[0].plan.product as string) || server.granted_to.includes(user.id))) throw new Error(`User is not granted access to ${ host }`);
 

@@ -42,7 +42,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 
 	// Make sure the secret is valid & maps to the user
 	const [ subscription ] = await query<Reedemable>(`SELECT * FROM transactions WHERE used = 0 AND user = "${ user.id }" AND secret = "${ secret }";`);
-	
+
 	// Make sure the secret is valid
 	if (!subscription) return res.status(400).json({
 		success: false,
@@ -58,7 +58,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 
 	// Unsubscribe from the old subscription
 	if (sub) await stripe.subscriptions.del(sub);
-	
+
 	// Get the session
 	const session = await stripe.checkout.sessions.retrieve(subscription.sessionid);
 
