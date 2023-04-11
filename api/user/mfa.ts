@@ -3,7 +3,6 @@
 /* eslint @typescript-eslint/no-var-requires: off */
 import { Request, Response } from "express";
 import { generateSecret, verifyToken } from "node-2fa";
-import path from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
@@ -20,6 +19,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		error: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
+
+	console.log(authorization);
 
 	// Ensure getUser didnt reject the request
 	if (res.headersSent) return;
@@ -46,13 +47,13 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (mfa !== undefined) await query<MySQLData.MFA>(`DELETE FROM mfa WHERE user = ${ user.id }`);
 
 		// Generate secret
-		const { secret, qr } = generateSecret({ name: require(path.resolve("./package.json")).name, account: user.email });
+		const { secret, qr } = generateSecret({ name: "Ember VPN", account: user.email });
 
 		// Insert into database
 		await query(`INSERT INTO mfa (id, user, secret, pending) VALUES (${ snowflake() }, ${ user.id }, "${ secret }", 1)`);
 
 		// Send link to QR code
-		return res.json({ success: true, qr });
+		return res.json({ success: true, qr: qr.replace("166x166", "164x164") });
 
 	}
 
