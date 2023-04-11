@@ -3,11 +3,11 @@
 import { Request, Response } from "express";
 import { access, readdir, rm, writeFile } from "fs/promises";
 import mime from "mime-types";
-import mkdirp from "mkdirp";
 import path from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import * as validate from "../../src/util/validate";
+import { mkdirp } from "mkdirp";
 
 export const route = [
 	"auth/avatar",
