@@ -4,8 +4,8 @@ import { Request, Response } from "express";
 import { verifyToken } from "node-2fa";
 import UAParser from "ua-parser-js";
 import { v1 as uuid } from "uuid";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
 import hash from "../../src/util/hash";
 import snowflake from "../../src/util/snowflake";
@@ -57,7 +57,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (mfa !== undefined && mfa.pending === 0) {
 
 			// If no token
-			if (token === undefined) return res.status(417).json({
+			if (token === undefined || token.length === 0) return res.status(417).json({
 				success: false,
 				message: "417 Expectation Failed",
 				description: "This account requires further authentication."
