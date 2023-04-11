@@ -1,5 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
-import { sync as mkdirp } from "mkdirp";
+import { mkdirp } from "mkdirp";
 import path from "path";
 import { query } from "../mysql";
 
@@ -67,7 +67,7 @@ export default class User<Meta = Auth.Meta> {
 	}
 
 	public getMeta() {
-		mkdirp(path.resolve("userdata/users/"));
+		mkdirp.sync(path.resolve("userdata/users/"));
 		try {
 			const store = readFileSync(path.resolve("userdata/users/", `${ this.id }.json`), "utf-8");
 			return this.meta = JSON.parse(store) as Meta;

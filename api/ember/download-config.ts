@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { readFile } from "fs/promises";
 import { resolve } from "path";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 
 export const route = "ember/download-config";
 
@@ -36,7 +36,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 	} catch (error) {
 		res.status(500).json({
-			error: <Error>error.toString(),
+			error: `${ error }`,
 			success: false
 		});
 	}
