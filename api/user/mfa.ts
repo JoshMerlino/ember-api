@@ -53,7 +53,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		await query(`INSERT INTO mfa (id, user, secret, pending) VALUES (${ snowflake() }, ${ user.id }, "${ secret }", 1)`);
 
 		// Send link to QR code
-		return res.json({ success: true, qr: qr.replace("166x166", "164x164") });
+		return res.json({ success: true, qr: qr.replace(/chs=166x166/, "chs=164x164") });
 
 	}
 
