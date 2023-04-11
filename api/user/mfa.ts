@@ -4,6 +4,8 @@
 import { Request, Response } from "express";
 import { generateSecret, verifyToken } from "node-2fa";
 import path from "path";
+import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
 import snowflake from "../../src/util/snowflake";
 
@@ -11,26 +13,19 @@ export const route = "auth/mfa";
 
 export default async function api(req: Request, res: Response): Promise<any> {
 
-	const { session_id } = req.cookies;
-
-	// Make sure the request contains a session
-	if (session_id === undefined) return res.status(401).json({
+	// Verify authorization
+	const authorization = getAuthorization(req);
+	if (authorization === undefined) return res.status(401).json({
 		success: false,
 		error: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 
-	// Get the full session
-	const [ session ] = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE session_id = "${ session_id }";`);
-	if (session === undefined) return res.status(401).json({
-		success: false,
-		error: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
+	// Ensure getUser didnt reject the request
+	if (res.headersSent) return;
 
-	// Get user
-	const [ user ] = await query<MySQLData.User>(`SELECT * FROM users WHERE id = ${ session.user };`);
-	if (user === undefined) return res.status(401).json({
+	const user = await User.fromAuthorization(authorization);
+	if (!user) return res.status(401).json({
 		success: false,
 		error: "401 Unauthorized",
 		description: "You likley do not have a valid session token."

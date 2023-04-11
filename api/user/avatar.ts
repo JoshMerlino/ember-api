@@ -132,7 +132,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Delete old pfp
 		await rm(path.resolve(`./userdata/avatar/${ user.id }/`), { recursive: true })
-			.catch(e => void e);
+			.catch(() => null);
 
 		// Send success
 		return res.json({ success: true });
