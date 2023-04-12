@@ -7,27 +7,26 @@ const client = new Octokit({
 	auth: process.env.GITHUB_PAT
 });
 
-export default async function api(req: Request, res: Response): Promise<void | Response> {
-
-	interface RepoFile {
-		name: string;
-		download_url: string;
-		sha: string;
-	}
-
+async function getDownloads(platform: string) {
+	
 	// Get version from file name
 	const v = (name: string) => name
 		.split(/\W/)
 		.map(a => parseInt(a))
 		.filter(a => !isNaN(a))
 		.join(".");
+	
+	interface RepoFile {
+		name: string;
+		download_url: string;
+		sha: string;
+	}
 
-	// List all files in repo EmberVPN/releases
-	const win32 = await Promise.all(await client.rest.repos.getContent({
+	return Promise.all(await client.rest.repos.getContent({
 		owner: "EmberVPN",
 		repo: "releases",
-		path: "win32"
-	}).then(async a => Array.from(a.data as RepoFile[])
+		path: platform
+	}).catch(() => ({ data: []})).then(async a => Array.from(a.data as RepoFile[])
 
 		// Sort by version
 		.sort((a, b) => {
@@ -50,16 +49,28 @@ export default async function api(req: Request, res: Response): Promise<void | R
 			name: file.name,
 			sha: file.sha,
 			version: v(file.name),
-			download_url: `https://media.githubusercontent.com/media/EmberVPN/releases/master/win32/${ file.name }`
+			download_url: `https://media.githubusercontent.com/media/EmberVPN/releases/master/${ platform }/${ file.name }`
 		}))));
+}
+
+export default async function api(req: Request, res: Response): Promise<void | Response> {
+	
+	// List all files in repo EmberVPN/releases
+	const win32 = await getDownloads("win32");
+	const linux = await getDownloads("linux");
+	const darwin = await getDownloads("darwin");
 
 	res.json({
 		success: true,
 		latest: {
-			win32: win32.reverse()[0]
+			win32: win32.reverse()[0],
+			linux: linux.reverse()[0],
+			darwin: darwin.reverse()[0],
 		},
 		older: {
-			win32: win32.slice(1)
+			win32: win32.slice(1),
+			linux: linux.slice(1),
+			darwin: darwin.slice(1),
 		}
 	});
 
