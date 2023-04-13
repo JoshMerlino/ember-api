@@ -7,7 +7,14 @@ const client = new Octokit({
 	auth: process.env.GITHUB_PAT
 });
 
+// Helper function to get all files in a directory
 async function getDownloads(platform: string) {
+	
+	interface RepoFile {
+		name: string;
+		download_url: string;
+		sha: string;
+	}
 
 	// Get version from file name
 	const v = (name: string) => name
@@ -15,12 +22,6 @@ async function getDownloads(platform: string) {
 		.map(a => parseInt(a))
 		.filter(a => !isNaN(a))
 		.join(".");
-
-	interface RepoFile {
-		name: string;
-		download_url: string;
-		sha: string;
-	}
 
 	return Promise.all(await client.rest.repos.getContent({
 		owner: "EmberVPN",
@@ -45,13 +46,13 @@ async function getDownloads(platform: string) {
 				return 0;
 			})
 
-		// Map to file info
+			// Map to file info
 			.map(async file => ({
 				name: file.name,
 				sha: file.sha,
 				version: v(file.name),
 				download_url: `https://media.githubusercontent.com/media/EmberVPN/releases/master/${ platform }/${ file.name }`
-			}))));
+			})))).then(a => a.reverse());
 }
 
 export default async function api(req: Request, res: Response): Promise<void | Response> {
@@ -61,17 +62,35 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	const linux = await getDownloads("linux");
 	const darwin = await getDownloads("darwin");
 
+	interface File {
+		name: string;
+		sha: string;
+		version: string;
+		download_url: string;
+	}
+
+	function dx(files: File[]) {
+
+		// Get the latest file for each platform
+		const latest = files[0];
+		const { version } = latest;
+
+		const fx = files.filter(a => a.version === version)
+			.map((a: Partial<File>) => delete a.version && a);
+		
+		return {
+			version,
+			files: fx
+		};
+
+	}
+
 	res.json({
 		success: true,
-		latest: {
-			win32: win32.reverse()[0],
-			linux: linux.reverse()[0],
-			darwin: darwin.reverse()[0]
-		},
-		older: {
-			win32: win32.slice(1),
-			linux: linux.slice(1),
-			darwin: darwin.slice(1)
+		platform: {
+			win32: dx(win32),
+			linux: dx(linux),
+			darwin: dx(darwin)
 		}
 	});
 
