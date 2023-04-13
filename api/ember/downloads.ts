@@ -80,7 +80,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 		return {
 			version,
-			files: fx
+			files: fx.reverse()
 		};
 
 	}
@@ -89,8 +89,8 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		success: true,
 		platform: {
 			win32: dx(win32),
+			darwin: dx(darwin),
 			linux: dx(linux),
-			darwin: dx(darwin)
 		}
 	});
 
