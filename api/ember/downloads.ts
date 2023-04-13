@@ -9,7 +9,7 @@ const client = new Octokit({
 
 // Helper function to get all files in a directory
 async function getDownloads(platform: string) {
-	
+
 	interface RepoFile {
 		name: string;
 		download_url: string;
@@ -77,7 +77,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 		const fx = files.filter(a => a.version === version)
 			.map((a: Partial<File>) => delete a.version && a);
-		
+
 		return {
 			version,
 			files: fx
