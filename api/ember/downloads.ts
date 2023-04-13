@@ -90,7 +90,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		platform: {
 			win32: dx(win32),
 			darwin: dx(darwin),
-			linux: dx(linux),
+			linux: dx(linux)
 		}
 	});
 
