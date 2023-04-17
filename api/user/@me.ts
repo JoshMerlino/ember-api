@@ -2,8 +2,8 @@
 /* eslint camelcase: off */
 import { Request, Response } from "express";
 import idealPasswd from "ideal-password";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
 import hash from "../../src/util/hash";
 
@@ -22,7 +22,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Verify authorization
 	const authorization = getAuthorization(req);
-	if (authorization === undefined) return res.status(401).json({
+	if (authorization === undefined) return res.json({
 		success: false,
 		error: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
