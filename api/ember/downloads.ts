@@ -90,8 +90,17 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		platform: {
 			win32: dx(win32),
 			darwin: dx(darwin),
-			linux: dx(linux)
+			linux: dx(linux),
+		},
+
+		// For compatability
+		latest: {
+			"__": "This is deprecated, use platform instead. The versions below are not the latest version.",
+			win32: win32.reverse()[0],
+			darwin: darwin.reverse()[0],
+			linux: linux.reverse()[0],
 		}
+		
 	});
 
 }
