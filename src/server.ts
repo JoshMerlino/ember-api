@@ -1,9 +1,7 @@
 import asyncRequireContext from "async-require-context";
 import chalk from "chalk";
-import { Application, Express, RequestHandler } from "express";
-import { readFileSync } from "fs";
+import { Express, RequestHandler } from "express";
 import http from "http";
-import { resolve } from "path";
 
 export default async function server(app: Express): Promise<void> {
 
@@ -26,8 +24,8 @@ export default async function server(app: Express): Promise<void> {
 	endpoints.map(function(endpoint) {
 		const routes = typeof endpoint.module.route === "string" ? [ endpoint.module.route ] : endpoint.module.route;
 		function apply(route: string, handler: RequestHandler) {
-			app.all(`/api/${route}`, handler);
-			app.all(`/${route}`, handler);
+			app.all(`/api/${ route }`, handler);
+			app.all(`/${ route }`, handler);
 		}
 		routes.map(route => apply(route, (a, b) => {
 			try {
@@ -50,6 +48,6 @@ export default async function server(app: Express): Promise<void> {
 
 	// Start HTTP server
 	http.createServer(app).listen(PORT);
-	console.info(chalk.redBright("SRV"), "HTTP server running on", chalk.cyan(`:${PORT} (http)`));
+	console.info(chalk.redBright("SRV"), "HTTP server running on", chalk.cyan(`:${ PORT } (http)`));
 
 }

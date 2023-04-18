@@ -28,7 +28,7 @@ async function getDownloads(platform: string) {
 		repo: "releases",
 		path: platform
 	}).catch(() => ({ data: []}))
-		.then(async a => Array.from(a.data as RepoFile[])
+		.then(a => Array.from(a.data as RepoFile[])
 
 		// Sort by version
 			.sort((a, b) => {
@@ -47,7 +47,7 @@ async function getDownloads(platform: string) {
 			})
 
 			// Map to file info
-			.map(async file => ({
+			.map(file => ({
 				name: file.name,
 				sha: file.sha,
 				version: v(file.name),
