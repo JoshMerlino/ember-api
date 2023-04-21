@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { readFile } from "fs/promises";
 import { Socket } from "net";
 import { resolve } from "path";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import { isAllowed } from "../../src/ember/isAllowed";
 
 export const route = "ember/servers";
@@ -49,7 +49,12 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 	res.json({
 		success: true,
-		servers: usersServers
+		servers: Object.values(usersServers)
+			.filter(server => server.ping !== false)
+			.reduce((obj, server) => {
+				obj[server.hash] = server;
+				return obj;
+			}, {} as Record<string, Ember.Server>)
 	});
 
 }
