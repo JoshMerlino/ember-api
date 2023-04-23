@@ -67,7 +67,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			const verify = verifyToken(mfa.secret, token);
 			if (verify === null || verify.delta !== 0) return res.status(406).json({
 				success: false,
-				error: "406 Not Acceptable",
+				message: "406 Not Acceptable",
 				description: "The token is not correct.",
 				readable: "Invalid token."
 			});
@@ -150,7 +150,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const authorization = getAuthorization(req);
 		if (authorization === undefined) return res.status(401).json({
 			success: false,
-			error: "401 Unauthorized",
+			message: "401 Unauthorized",
 			description: "You likley do not have a valid session token."
 		});
 
@@ -158,7 +158,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const user = await User.fromAuthorization(authorization);
 		if (!user) return res.status(401).json({
 			success: false,
-			error: "401 Unauthorized",
+			message: "401 Unauthorized",
 			description: "You likley do not have a valid session token."
 		});
 

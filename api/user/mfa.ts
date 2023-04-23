@@ -16,7 +16,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const authorization = getAuthorization(req);
 	if (authorization === undefined) return res.status(401).json({
 		success: false,
-		error: "401 Unauthorized",
+		message: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 
@@ -28,7 +28,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const user = await User.fromAuthorization(authorization);
 	if (!user) return res.status(401).json({
 		success: false,
-		error: "401 Unauthorized",
+		message: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 
@@ -39,7 +39,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
 		if (mfa !== undefined && mfa.pending === 0) return res.status(406).json({
 			success: false,
-			error: "406 Not Acceptable",
+			message: "406 Not Acceptable",
 			description: "This account already has multifactor authentication enabled."
 		});
 
@@ -64,7 +64,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
 		if (mfa === undefined || mfa.pending === 1) return res.status(406).json({
 			success: false,
-			error: "406 Not Acceptable",
+			message: "406 Not Acceptable",
 			description: "This account does not have multifactor authentication enabled."
 		});
 
@@ -83,7 +83,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
 		if (mfa !== undefined && mfa.pending === 0) return res.status(406).json({
 			success: false,
-			error: "406 Not Acceptable",
+			message: "406 Not Acceptable",
 			description: "This account already has multifactor authentication enabled."
 		});
 
@@ -91,7 +91,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (mfa === undefined) {
 			return res.status(406).json({
 				success: false,
-				error: "406 Not Acceptable",
+				message: "406 Not Acceptable",
 				description: "This account is not ready for multifactor authentication setup."
 			});
 		}
@@ -108,7 +108,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const verify = verifyToken(mfa.secret, token);
 		if (verify === null || verify.delta !== 0) return res.status(406).json({
 			success: false,
-			error: "406 Not Acceptable",
+			message: "406 Not Acceptable",
 			description: "The token is not correct."
 		});
 

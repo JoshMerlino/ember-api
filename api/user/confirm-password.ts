@@ -1,8 +1,8 @@
 /* eslint @typescript-eslint/no-explicit-any: off */
 /* eslint camelcase: off */
 import { Request, Response } from "express";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import hash from "../../src/util/hash";
 
 export const route = "auth/confirm-password";
@@ -22,7 +22,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const authorization = getAuthorization(req);
 	if (authorization === undefined) return res.status(401).json({
 		success: false,
-		error: "401 Unauthorized",
+		message: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 
@@ -30,7 +30,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const user = await User.fromAuthorization(authorization);
 	if (!user) return res.status(401).json({
 		success: false,
-		error: "401 Unauthorized",
+		message: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 

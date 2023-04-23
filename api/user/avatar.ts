@@ -3,11 +3,11 @@
 import { Request, Response } from "express";
 import { access, readdir, rm, writeFile } from "fs/promises";
 import mime from "mime-types";
+import { mkdirp } from "mkdirp";
 import path from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import * as validate from "../../src/util/validate";
-import { mkdirp } from "mkdirp";
 
 export const route = [
 	"auth/avatar",
@@ -38,7 +38,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const { userid } = body;
 		if (!validate.userID(userid)) return res.status(406).json({
 			success: false,
-			error: "406 Not Acceptable",
+			message: "406 Not Acceptable",
 			description: "No user ID was specified."
 		});
 
@@ -46,7 +46,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const user = await User.fromID(parseInt(userid.toString()));
 		if (!user) return res.status(406).json({
 			success: false,
-			error: "406 Not Acceptable",
+			message: "406 Not Acceptable",
 			description: `No user with ID '${ userid }' exists.`
 		});
 
@@ -75,7 +75,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const authorization = getAuthorization(req);
 	if (authorization === undefined) return res.status(401).json({
 		success: false,
-		error: "401 Unauthorized",
+		message: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 
@@ -83,7 +83,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const user = await User.fromAuthorization(authorization);
 	if (!user) return res.status(401).json({
 		success: false,
-		error: "401 Unauthorized",
+		message: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 

@@ -100,7 +100,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const user = await User.fromID(sso.user);
 		if (!user) return res.status(406).json({
 			success: false,
-			error: "406 Not Acceptable",
+			message: "406 Not Acceptable",
 			description: "User deleted.",
 			readable: "Your account has been deleted and can not be restored."
 		});

@@ -1,8 +1,8 @@
 import { randomBytes } from "crypto";
 import { Request, Response } from "express";
 import Stripe from "stripe";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
 import { stripe } from "../../src/stripe";
 
@@ -15,7 +15,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	const user = authorization && await User.fromAuthorization(authorization);
 	if (!authorization || !user) return res.status(401).json({
 		success: false,
-		error: "401 Unauthorized",
+		message: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 
@@ -26,7 +26,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	// Make sure the user dosnt already this subscription
 	if (currentSubscription && currentSubscription.id === subscription) return res.status(400).json({
 		success: false,
-		error: "400 Bad Request",
+		message: "400 Bad Request",
 		description: "You already have a subscription."
 	});
 
@@ -37,7 +37,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	// Make sure the plan is valid
 	if (!item) return res.status(400).json({
 		success: false,
-		error: "400 Bad Request",
+		message: "400 Bad Request",
 		description: "You must provide a plan id."
 	});
 
@@ -51,7 +51,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	// Make sure the plan is valid
 	if (!pkg) return res.status(400).json({
 		success: false,
-		error: "400 Bad Request",
+		message: "400 Bad Request",
 		description: "The plan id you provided is invalid."
 	});
 
