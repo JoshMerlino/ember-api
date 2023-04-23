@@ -14,7 +14,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const user = authorization && await User.fromAuthorization(authorization);
 	if (!authorization || !user) return res.status(401).json({
 		success: false,
-		message: "401 Unauthorized",
+		error: "401 Unauthorized",
 		description: "You likley do not have a valid session token."
 	});
 
@@ -26,13 +26,13 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	if (!servers.hasOwnProperty(hash)) return res.status(404).json({
 		success: false,
-		message: "404 Not Found",
+		error: "404 Not Found",
 		message: `Server '${ hash }' not found`
 	});
 
 	if (!accessMap[user.id].includes(hash)) return res.status(403).json({
 		success: false,
-		message: "403 Forbidden",
+		error: "403 Forbidden",
 		message: `You are not allowed to access server '${ hash }'`
 	});
 
