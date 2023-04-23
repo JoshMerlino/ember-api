@@ -28,7 +28,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		requiredFields.map(field => {
 			if (body[field] === undefined) return res.status(406).json({
 				success: false,
-				message: "406 Not Acceptable",
+				error: "406 Not Acceptable",
 				description: `Field '${ field }' is required but received 'undefined'.`,
 				readable: `Please enter a ${ field }.`
 			});
@@ -44,7 +44,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email }" AND passwd_md5 = "${ md5 }";`);
 		if (users.length === 0) return res.status(406).json({
 			success: false,
-			message: "406 Not Acceptable",
+			error: "406 Not Acceptable",
 			description: "Fields 'email' or 'password' are invalid.",
 			readable: "Incorrect password."
 		});
@@ -108,7 +108,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		// Ensure Fields are there
 		if (session_id === undefined) return res.status(406).json({
 			success: false,
-			message: "406 Not Acceptable",
+			error: "406 Not Acceptable",
 			description: "Field 'session_id' is required but received 'undefined'."
 		});
 
@@ -120,7 +120,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		if (session === undefined) return res.status(406).json({
 			success: false,
-			message: "406 Not Acceptable",
+			error: "406 Not Acceptable",
 			description: `Session ID '${ session_id }' is not a valid session ID.`
 		});
 
@@ -184,7 +184,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Respond with 405
 	return res.status(405).json({
 		success: false,
-		message: "405 Method Not Allowed",
+		error: "405 Method Not Allowed",
 		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 

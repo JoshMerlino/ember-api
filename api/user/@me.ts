@@ -16,7 +16,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Check method
 	if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "DELETE" && req.method !== "POST") return res.status(405).json({
 		success: false,
-		message: "405 Method Not Allowed",
+		error: "405 Method Not Allowed",
 		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 
@@ -50,7 +50,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (email) {
 			if (!/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(email)) return res.status(406).json({
 				success: false,
-				message: "406 Not Acceptable",
+				error: "406 Not Acceptable",
 				description: "Field 'email' expects type of 'EmailAddress' but received 'string'.",
 				readable: `Email '${ email.toLowerCase() }' is not a valid email address.`
 			});
@@ -58,7 +58,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 			if (users.filter(({ id }) => id !== user.id).length !== 0) {
 				return res.status(406).json({
 					success: false,
-					message: "406 Not Acceptable",
+					error: "406 Not Acceptable",
 					description: "Field 'email' must be unique.",
 					readable: `Email '${ email.toLowerCase() }' is already being used. Did you mean to sign in?`
 				});
@@ -73,21 +73,21 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 			if (!legal) return res.status(406).json({
 				success: false,
-				message: "406 Not Acceptable",
+				error: "406 Not Acceptable",
 				description: "'password' contains invalid characters.",
 				readable: "Please pick a new password."
 			});
 
 			if (password.length < 8) return res.status(406).json({
 				success: false,
-				message: "406 Not Acceptable",
+				error: "406 Not Acceptable",
 				description: "'password' must be at least 8 characters in length.",
 				readable: "Please choose a longer password. It must be at least 8 characters long."
 			});
 
 			if (entropy < 50) return res.status(406).json({
 				success: false,
-				message: "406 Not Acceptable",
+				error: "406 Not Acceptable",
 				description: "'password' does not satify security requirements.",
 				readable: "Please choose a different password. That one is insecure."
 			});

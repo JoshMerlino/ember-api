@@ -31,7 +31,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		// Ensure Fields are there
 		if (email === undefined || email === "") return res.status(406).json({
 			success: false,
-			message: "406 Not Acceptable",
+			error: "406 Not Acceptable",
 			description: "Field 'email' is required but received 'undefined'.",
 			readable: "Please enter an email address."
 		});
@@ -42,7 +42,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (user === undefined) {
 			return res.status(404).json({
 				success: false,
-				message: "404 Not Found",
+				error: "404 Not Found",
 				description: "Specified user does not exist.",
 				readable: `'${ email.toLowerCase() }' is not a valid email address.`
 			});
@@ -93,7 +93,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		if (sso === undefined) res.status(401).json({
 			success: false,
-			message: "401 Unauthorized",
+			error: "401 Unauthorized",
 			description: "Invalid single-sign on token."
 		});
 
@@ -135,7 +135,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Return 405
 	return res.status(405).json({
 		success: false,
-		message: "405 Method Not Allowed",
+		error: "405 Method Not Allowed",
 		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 

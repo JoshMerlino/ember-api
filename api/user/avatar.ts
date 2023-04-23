@@ -144,7 +144,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	return res.status(405).json({
 		success: false,
-		message: "405 Method Not Allowed",
+		error: "405 Method Not Allowed",
 		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 

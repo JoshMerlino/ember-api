@@ -14,7 +14,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Check method
 	if (req.method !== "POST") return res.status(405).json({
 		success: false,
-		message: "405 Method Not Allowed",
+		error: "405 Method Not Allowed",
 		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 
@@ -41,7 +41,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	if (password === undefined || password === "") return res.status(406).json({
 		success: false,
-		message: "406 Not Acceptable",
+		error: "406 Not Acceptable",
 		description: "Field 'password' is required but received 'undefined'.",
 		readable: "Please enter your password."
 	});
@@ -55,7 +55,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	return res.status(400).json({
 		success: false,
-		message: "400 Bad Request",
+		error: "400 Bad Request",
 		description: "Checksums do not match.",
 		readable: "Password is incorrect.",
 		requested_checksum: checksum,

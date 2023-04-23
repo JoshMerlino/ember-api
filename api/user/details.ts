@@ -15,7 +15,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Check method
 	if (req.method !== "POST") return res.status(405).json({
 		success: false,
-		message: "405 Method Not Allowed",
+		error: "405 Method Not Allowed",
 		description: `Method '${ req.method }' is not allowed on this endpoint.`
 	});
 
@@ -25,7 +25,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// Ensure Fields are there
 	if (email === undefined || email === "") return res.status(406).json({
 		success: false,
-		message: "406 Not Acceptable",
+		error: "406 Not Acceptable",
 		description: "Field 'email' is required but received 'undefined'.",
 		readable: "Please enter an email address."
 	});
@@ -35,7 +35,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	if (userRow === undefined) {
 		return res.status(404).json({
 			success: false,
-			message: "404 Not Found",
+			error: "404 Not Found",
 			description: "Specified user does not exist.",
 			readable: `'${ email.toLowerCase() }' is not a valid email address.`
 		});
@@ -48,7 +48,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const user = await User.fromID(userRow.id);
 	if (!user) return res.status(404).json({
 		success: false,
-		message: "404 Not Found",
+		error: "404 Not Found",
 		description: "Specified user does not exist.",
 		readable: `'${ email.toLowerCase() }' is not a valid email address.`
 	});
