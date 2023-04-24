@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import User from "../../src/auth/User";
-import { query } from "../../src/mysql";
-import rejectRequest from "../../src/util/rejectRequest";
-import { emailAddress } from "../../src/util/validate";
+import User from "../../../src/auth/User";
+import { query } from "../../../src/mysql";
+import rejectRequest from "../../../src/util/rejectRequest";
+import { emailAddress } from "../../../src/util/validate";
 
-export const route = "v2/auth/details";
+export const route = "auth/details";
 export default async function api(req: Request, res: Response) {
 
 	// Get fields
@@ -27,11 +27,9 @@ export default async function api(req: Request, res: Response) {
 
 	// Send response
 	res.json({
-		success: true,
-		user: {
-			...user.toSafe(),
-			avatar_url: req.url.replace(/\/details$/g, `/avatar/${ user.id }`),
-		}
+		...user.toSafe(),
+		avatar_url: req.url.replace(/\/details$/g, `/avatar/${ user.id }`),
+		success: true
 	});
 
 }

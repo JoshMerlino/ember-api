@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import idealPasswd from "ideal-password";
-import User from "../../src/auth/User";
-import getAuthorization from "../../src/auth/getAuthorization";
-import { query } from "../../src/mysql";
-import hash from "../../src/util/hash";
-import rejectRequest from "../../src/util/rejectRequest";
-import { emailAddress } from "../../src/util/validate";
+import User from "../../../src/auth/User";
+import getAuthorization from "../../../src/auth/getAuthorization";
+import { query } from "../../../src/mysql";
+import hash from "../../../src/util/hash";
+import rejectRequest from "../../../src/util/rejectRequest";
+import { emailAddress } from "../../../src/util/validate";
 
-export const route = "v2/auth/@me";
+export const route = "auth/@me";
 export default async function api(req: Request, res: Response) {
 
 	// Get request body
@@ -92,11 +92,9 @@ export default async function api(req: Request, res: Response) {
 
 	// Send response
 	res.json({
+		...user,
 		success: true,
-		user: {
-			...user,
-			avatar_url: req.url.replace(/@me$/g, `avatar/${ user.id }`),
-		}
+		avatar_url: req.url.replace(/@me$/g, `avatar/${ user.id }`)
 	});
 
 }
