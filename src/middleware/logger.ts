@@ -16,7 +16,7 @@ export default function middleware(req: Request, res: Response, next: NextFuncti
 		"<-",
 		chalk.cyan(route),
 		chalk.magenta(req.method),
-		chalk.redBright(req.secure ? "":"INSECURE")
+		chalk.redBright(req.secure ? "" : "INSECURE")
 	);
 
 	// Monitor endpoint for a response
@@ -35,7 +35,7 @@ export default function middleware(req: Request, res: Response, next: NextFuncti
 			chalk.cyan(route),
 			chalk.magenta(req.method),
 			chalk.greenBright(res.statusCode),
-			chalk.yellowBright(`${duration}ms`)
+			chalk.yellowBright(`${ duration }ms`)
 		);
 
 		// Stop loop

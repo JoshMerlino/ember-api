@@ -5,8 +5,7 @@ import { stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "ember/subscription";
-
-export default async function api(req: Request, res: Response): Promise<never | void | unknown> {
+export default async function api(req: Request, res: Response) {
 
 	// See if the user is authorized
 	const authorization = getAuthorization(req);

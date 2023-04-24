@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { NodeSSH } from "node-ssh";
-export const route = "rsa/download-ca";
 
+export const route = "rsa/download-ca";
 export default async function api(req: Request, res: Response) {
 
 	// Download the CA certificate

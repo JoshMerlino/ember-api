@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import getAuthorization from "../../src/auth/getAuthorization";
 import User from "../../src/auth/User";
+import getAuthorization from "../../src/auth/getAuthorization";
 import { stripe } from "../../src/stripe";
 
 export const route = "ember/plans";
+export default async function api(req: Request, res: Response) {
 
-export default async function api(req: Request, res: Response): Promise<never | void | unknown> {
-
+	// Get all packages
 	const { data: packages } = await stripe.products.list({
 		limit: 100,
 		active: true,
@@ -22,9 +22,11 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	const { subscription } = user.getMeta();
 	const currentSubscription = subscription && await stripe.subscriptions.retrieve(subscription, { expand: [ "plan.product" ]});
 
-	res.json({
+	// Return the packages
+	return res.json({
 		success: true,
 		currentSubscription,
 		packages
 	});
+
 }

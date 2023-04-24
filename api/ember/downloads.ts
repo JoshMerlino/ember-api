@@ -1,11 +1,8 @@
 import { Octokit } from "@octokit/rest";
 import { Request, Response } from "express";
 
-export const route = "ember/downloads";
-
-const client = new Octokit({
-	auth: process.env.GITHUB_PAT
-});
+// Initialize GitHub API client
+const client = new Octokit({ auth: process.env.GITHUB_PAT });
 
 // Helper function to get all files in a directory
 async function getDownloads(platform: string) {
@@ -55,7 +52,8 @@ async function getDownloads(platform: string) {
 			})))).then(a => a.reverse());
 }
 
-export default async function api(req: Request, res: Response): Promise<void | Response> {
+export const route = "ember/downloads";
+export default async function api(req: Request, res: Response) {
 
 	// List all files in repo EmberVPN/releases
 	const win32 = await getDownloads("win32");
@@ -69,13 +67,16 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		download_url: string;
 	}
 
-	function dx(files: File[]) {
+	// Get all files for the latest version
+	function getLatest(files: File[]) {
 
 		// Get the latest file for each platform
 		const latest = files[0];
 		const { version } = latest;
 
-		const fx = files.filter(a => a.version === version)
+		// Merge all files for the latest version
+		const fx = files
+			.filter(a => a.version === version)
 			.map((a: Partial<File>) => delete a.version && a);
 
 		return {
@@ -85,12 +86,13 @@ export default async function api(req: Request, res: Response): Promise<void | R
 
 	}
 
+	// Return the latest version for each platform
 	res.json({
 		success: true,
 		platform: {
-			win32: dx(win32),
-			darwin: dx(darwin),
-			linux: dx(linux)
+			win32: getLatest(win32),
+			darwin: getLatest(darwin),
+			linux: getLatest(linux)
 		},
 
 		// For compatability

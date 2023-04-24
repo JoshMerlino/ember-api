@@ -5,11 +5,8 @@ import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import rejectRequest from "../../src/util/rejectRequest";
 
-// Export route path
 export const route = "ember/download-config";
-
-// Export route handler
-export default async function api(req: Request, res: Response): Promise<void | Response> {
+export default async function api(req: Request, res: Response) {
 
 	// Ensure authorization
 	const authorization = getAuthorization(req);
@@ -32,13 +29,13 @@ export default async function api(req: Request, res: Response): Promise<void | R
 		// Send config
 		res.header("Content-Type", "application/x-openvpn-profile");
 		res.header("Content-Disposition", `attachment; filename="${ hash.substring(0, 24) }.ovpn"`);
-		res.send(raw);
+		return res.send(raw);
 
 	} catch (error) {
 
 		// If error, return 500
 		console.error(error);
-		rejectRequest(res, 500);
+		return rejectRequest(res, 500);
 
 	}
 

@@ -39,7 +39,7 @@ process.on("beforeExit", () => {
 });
 
 // Initialize database
-pool.on("connection", async function(){
+pool.on("connection", async function() {
 
 	// Get number of tables
 	const tables = await query("SHOW TABLES");

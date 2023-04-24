@@ -8,8 +8,7 @@ import { stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "ember/subscribe";
-
-export default async function api(req: Request, res: Response): Promise<never | void | unknown> {
+export default async function api(req: Request, res: Response) {
 
 	// See if the user is authorized
 	const authorization = getAuthorization(req);
@@ -21,17 +20,13 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	const currentSubscription = subscription && await stripe.subscriptions.retrieve(subscription);
 
 	// Make sure the user dosnt already this subscription
-	if (currentSubscription && currentSubscription.id === subscription) return rejectRequest(res, 417, "You already have this subscription.");
+	if (currentSubscription && currentSubscription.id === subscription) return rejectRequest(res, 406, "You already have this subscription.");
 
 	// Get the plan id
-	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
-	const { item, host } = body;
+	const { item }: Record<string, string | undefined> = { ...req.body, ...req.query };
 
 	// Make sure the plan is valid
 	if (!item) return rejectRequest(res, 400, "Missing key 'item' in request.");
-
-	// Get the plan
-	// Const pkg = item.startsWith("prod_") ? await stripe.products.retrieve(item) : await stripe.prices.retrieve(item, { expand: "data.product" }).then(r => r.product);
 
 	// Dont look if u dont have to
 	const pkg = item.startsWith("price_") ? await stripe.prices.retrieve(item, { expand: [ "product" ]})
@@ -64,7 +59,7 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	await query(`INSERT INTO transactions (secret, user, created_ms, product, sessionid) VALUES ("${ secret }", "${ user.id }", ${ Date.now() }, "${ pkg.id }", "${ session.id }");`);
 
 	// Return the session
-	res.json({
+	return res.json({
 		success: true,
 		sessionId: session.id,
 		item
