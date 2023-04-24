@@ -3,6 +3,7 @@ import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
 import { stripe } from "../../src/stripe";
+import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "ember/redeem";
 
@@ -23,32 +24,20 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	// See if the user is authorized
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);
-	if (!authorization || !user) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
+	if (!authorization || !user) return rejectRequest(res, 401);
 
 	// Get the transaction secret
 	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
 	const secret = body.secret;
 
 	// Make sure the plan is valid
-	if (!secret) return res.status(400).json({
-		success: false,
-		message: "400 Bad Request",
-		description: "You must provide a transaction secret."
-	});
+	if (!secret) return rejectRequest(res, 400, "Missing key 'secret' in request.");
 
 	// Make sure the secret is valid & maps to the user
 	const [ subscription ] = await query<Reedemable>(`SELECT * FROM transactions WHERE used = 0 AND user = "${ user.id }" AND secret = "${ secret }";`);
 
 	// Make sure the secret is valid
-	if (!subscription) return res.status(400).json({
-		success: false,
-		message: "400 Bad Request",
-		description: "The transaction secret is invalid."
-	});
+	if (!subscription) return rejectRequest(res, 400, "Transaction secret is not correct.");
 
 	// Mark the secret as used
 	await query(`UPDATE transactions SET used = 1 WHERE id = "${ subscription.id }";`);

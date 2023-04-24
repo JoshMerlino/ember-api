@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 export default function prettyJSON(req: Request, res: Response, next: NextFunction): void {
 
 	// Modify the res.json method
-	res.json = function(body: unknown[] | Record<string, unknown>) {
+	res.json = function(body: REST.APIError | REST.APIResponse) {
 
 		// Set content-type header
 		res.header("Content-Type", "application/json; charset=utf-8");
@@ -16,7 +16,7 @@ export default function prettyJSON(req: Request, res: Response, next: NextFuncti
 			const pretty = req.query.hasOwnProperty("pretty") || req.header("pretty") === "true";
 
 			// Send response
-			return res.send(JSON.stringify(body, pretty ? null:undefined, pretty ? 4:undefined));
+			return res.send(JSON.stringify(body, pretty ? null : undefined, pretty ? 4 : undefined));
 
 		}
 

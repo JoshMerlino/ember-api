@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { stripe } from "../../src/stripe";
+import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "ember/subscription";
 
@@ -10,32 +11,19 @@ export default async function api(req: Request, res: Response): Promise<never | 
 	// See if the user is authorized
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);
-	if (!authorization || !user) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
+	if (!authorization || !user) return rejectRequest(res, 401);
 
-	// Get the transaction secret
+	// Get the subscription
 	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
 	const subscription = body.subscription ?? user.getMeta().subscription;
-
-	// Make sure the plan is valid
-	if (!subscription) return res.status(400).json({
-		success: false,
-		message: "400 Bad Request",
-		description: "You must provide a subscription."
-	});
+	if (!subscription) return rejectRequest(res, 400, "Missing key 'subscription' in request.");
 
 	// If method is delete
 	if (req.method === "DELETE") {
 
 		// Delete the subscription
-		try {
-			await stripe.subscriptions.del(subscription);
-		} catch (error) {
-			console.error(error);
-		}
+		await stripe.subscriptions.del(subscription)
+			.catch(() => null);
 
 		// Update the user
 		user.setMeta("subscription", undefined);
@@ -45,8 +33,14 @@ export default async function api(req: Request, res: Response): Promise<never | 
 
 	}
 
+	// Get the subscription
+	const session = await stripe.subscriptions.retrieve(subscription, { expand: [ "plan.product" ]})
+		.catch(() => null);
+	if (!session) return rejectRequest(res, 400, "Subscription not found.");
+
+	// Return the subscription
 	res.json({
-		...await stripe.subscriptions.retrieve(subscription, { expand: [ "plan.product" ]}),
+		...session,
 		success: true
 	});
 

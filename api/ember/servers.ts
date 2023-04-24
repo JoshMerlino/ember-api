@@ -5,6 +5,7 @@ import { resolve } from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { isAllowed } from "../../src/ember/isAllowed";
+import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "ember/servers";
 
@@ -33,10 +34,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	// Ensure authorization
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);
-	if (!authorization || !user) return res.status(401).json({
-		error: "Unauthorized",
-		success: false
-	});
+	if (!authorization || !user) return rejectRequest(res, 401);
 
 	const usersServers: Record<string, Ember.Server> = {};
 	for (const server of Object.values(servers)) {

@@ -3,42 +3,43 @@ import { readFile } from "fs/promises";
 import { resolve } from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
+import rejectRequest from "../../src/util/rejectRequest";
 
+// Export route path
 export const route = "ember/download-config";
 
+// Export route handler
 export default async function api(req: Request, res: Response): Promise<void | Response> {
 
 	// Ensure authorization
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);
-	if (!authorization || !user) return res.status(401).json({
-		error: "Unauthorized",
-		success: false
-	});
+	if (!authorization || !user) return rejectRequest(res, 401);
 
 	// Get host from request params
 	const hash = req.query.hash ?? req.body.hash ?? req.query.config ?? req.body.config;
 
 	// If host is not a string, return 400
-	if (!hash) return res.status(400).json({
-		error: "Missing config hash",
-		success: false
-	});
+	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
 	// Attempt to connect to host
 	try {
 
+		// Get config
 		const config = resolve("userdata/configs", `${ hash }.ovpn`);
 		const raw = await readFile(config, "utf8");
+
+		// Send config
 		res.header("Content-Type", "application/x-openvpn-profile");
 		res.header("Content-Disposition", `attachment; filename="${ hash.substring(0, 24) }.ovpn"`);
 		res.send(raw);
 
 	} catch (error) {
-		res.status(500).json({
-			error: `${ error }`,
-			success: false
-		});
+
+		// If error, return 500
+		console.error(error);
+		rejectRequest(res, 500);
+
 	}
 
 }
