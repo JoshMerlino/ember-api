@@ -15,9 +15,6 @@ export default async function api(req: Request, res: Response) {
 	// Get body
 	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
 
-	// Check method
-	if ([ "POST", "DELETE", "GET" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
-
 	// Make sure method is POST
 	if (req.method === "POST") {
 
@@ -119,5 +116,8 @@ export default async function api(req: Request, res: Response) {
 		});
 
 	}
+
+	// Return 405
+	return rejectRequest(res, 405, `Method '${ req.method }' is not allowed.`);
 
 }

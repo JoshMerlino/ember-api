@@ -114,10 +114,6 @@ export default async function api(req: Request, res: Response) {
 	}
 
 	// Return 405
-	return res.status(405).json({
-		success: false,
-		error: "405 Method Not Allowed",
-		description: `Method '${ req.method }' is not allowed on this endpoint.`
-	});
+	return rejectRequest(res, 405, `Method '${ req.method }' is not allowed.`);
 
 }

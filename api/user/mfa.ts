@@ -12,9 +12,6 @@ export default async function api(req: Request, res: Response) {
 	// Get fields
 	const { token }: Record<string, string | undefined> = { ...req.body, ...req.query };
 
-	// Check method
-	if ([ "POST", "PATCH", "DELETE" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
-
 	// Ensure authorization
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);
@@ -83,5 +80,8 @@ export default async function api(req: Request, res: Response) {
 		return rejectRequest(res, 406, "Invalid token.");
 
 	}
+
+	// Return 405
+	return rejectRequest(res, 405, `Method '${ req.method }' is not allowed.`);
 
 }
