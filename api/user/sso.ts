@@ -11,8 +11,6 @@ import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
 import { emailAddress } from "../../src/util/validate";
 
-// FIXME - Clean up this file
-
 export const route = "auth/sso";
 export default async function api(req: Request, res: Response) {
 
