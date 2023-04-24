@@ -1,5 +1,3 @@
-/* eslint @typescript-eslint/no-explicit-any: off */
-/* eslint camelcase: off */
 import { Request, Response } from "express";
 import { readFile } from "fs/promises";
 import { marked } from "marked";
@@ -9,17 +7,17 @@ import manifest from "../../package.json";
 import User from "../../src/auth/User";
 import { query } from "../../src/mysql";
 import smtp from "../../src/smpt";
+import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
+import { emailAddress } from "../../src/util/validate";
 
 // FIXME - Clean up this file
 
-
 export const route = "auth/sso";
-
-export default async function api(req: Request, res: Response): Promise<any> {
+export default async function api(req: Request, res: Response) {
 
 	// Parse the request
-	const body = { ...req.body, ...req.query };
+	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
 	const fullurl = req.protocol + "://" + req.hostname + req.url;
 
 	// Delete all expired sso tokens
@@ -32,24 +30,16 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		const { email, redirect_uri = "/" } = body;
 
 		// Ensure Fields are there
-		if (email === undefined || email === "") return res.status(406).json({
-			success: false,
-			error: "406 Not Acceptable",
-			description: "Field 'email' is required but received 'undefined'.",
-			readable: "Please enter an email address."
-		});
+		if (!email) return rejectRequest(res, 406, "Required field 'email' is missing.");
+		if (!emailAddress(email)) return rejectRequest(res, 406, `Email '${ email.toLowerCase() }' is not a valid email address.`);
 
-		// Get user associated with email address
-		const [ user ] = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email?.toLowerCase() }"`);
+		// Lookup user by email
+		const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email?.toLowerCase() }"`);
+		if (userRow === undefined) return rejectRequest(res, 404, `User with email '${ email }' does not exist.`);
 
-		if (user === undefined) {
-			return res.status(404).json({
-				success: false,
-				error: "404 Not Found",
-				description: "Specified user does not exist.",
-				readable: `'${ email.toLowerCase() }' is not a valid email address.`
-			});
-		}
+		// Get user from id
+		const user = await User.fromID(userRow.id);
+		if (!user) return rejectRequest(res, 500, "Failed to get user from id.");
 
 		// Create SSO token & expiry time
 		const sso = uuid();
@@ -58,10 +48,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		// Insert SSO token to database
 		await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${ snowflake() }, "${ sso }", ${ user.id }, ${ expires_after })`);
 
-		const template = await readFile(path.resolve("./api/user/sso.md"), "utf8");
-
 		// Render message
-		const html = marked(template
+		const html = marked((await readFile(path.resolve("./api/user/sso.md"), "utf8"))
 			.replace(/%APPNAME%/g, manifest.name)
 			.replace(/%SSOLINK%/g, `${ fullurl }?token=${ sso }&redirect_uri=${ encodeURIComponent(redirect_uri) }`)
 			.replace(/%USERNAME%/g, user.username));
@@ -75,14 +63,14 @@ export default async function api(req: Request, res: Response): Promise<any> {
 				html
 			});
 		} catch (error) {
-			return res.status(500).json({
-				success: false,
-				message: "500 Internal Server Error",
-				description: "Failed to send email.",
-				error: process.env.DEVELOPMENT ? `${ error }` : undefined
-			});
+
+			// Error sending email
+			console.error(error);
+			return rejectRequest(res, 500, "Failed to send email.");
+
 		}
 
+		// Return success
 		return res.json({ success: true });
 
 	}
@@ -90,24 +78,19 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	// If GET, verify token
 	if (req.method === "GET") {
 
-		const { token, redirect_uri } = req.query;
+		// Get token and redirect
+		const { token, redirect_uri } = body;
 
+		// Locate token
 		const [ sso ] = await query<MySQLData.SSO>(`SELECT * FROM sso WHERE ssokey = "${ token }";`);
 
-		if (sso === undefined) res.status(401).json({
-			success: false,
-			error: "401 Unauthorized",
-			description: "Invalid single-sign on token."
-		});
+		// If no token found
+		if (sso === undefined) return rejectRequest(res, 404, "SSO token not found.");
 
 		const user = await User.fromID(sso.user);
-		if (!user) return res.status(406).json({
-			success: false,
-			message: "406 Not Acceptable",
-			description: "User deleted.",
-			readable: "Your account has been deleted and can not be restored."
-		});
+		if (!user) return rejectRequest(res, 500, "Failed to get user from id.");
 
+		// Delete token
 		await query(`DELETE FROM sso WHERE ssokey = "${ token }";`);
 
 		// Set email verified flag on user
@@ -117,9 +100,8 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		if (sso.prevent_authorization) return res.redirect(redirect_uri?.toString() ?? "/");
 
 		// Generate session id
-		const session_id = uuid();
-
 		const now = Date.now();
+		const session_id = uuid();
 
 		// Insert into sessions
 		await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${ snowflake() }, "${ session_id }", ${ user.id }, "${ user.passwd_md5 }", ${ now }, ${ now }, "${ req.header("User-Agent") }", "${ req.ip }");`);
@@ -128,12 +110,10 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		res.cookie("session_id", session_id, { maxAge: 1000 * 60 * 60 * 24 * 3650 });
 		res.header("authorization", session_id);
 
+		// Redirect
 		return res.redirect(redirect_uri?.toString() ?? "/");
 
 	}
-
-	// Continue?
-	if (res.headersSent) return;
 
 	// Return 405
 	return res.status(405).json({

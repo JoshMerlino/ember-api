@@ -1,62 +1,44 @@
-/* eslint @typescript-eslint/no-explicit-any: off */
-/* eslint camelcase: off */
-/* eslint @typescript-eslint/no-var-requires: off */
 import { Request, Response } from "express";
 import { generateSecret, verifyToken } from "node-2fa";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
+import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
 
-// FIXME - Clean up this file
-
-
 export const route = "auth/mfa";
+export default async function api(req: Request, res: Response) {
 
-export default async function api(req: Request, res: Response): Promise<any> {
+	// Get fields
+	const { token }: Record<string, string | undefined> = { ...req.body, ...req.query };
 
-	// Verify authorization
+	// Check method
+	if ([ "POST", "PATCH", "DELETE" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
+
+	// Ensure authorization
 	const authorization = getAuthorization(req);
-	if (authorization === undefined) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
-
-	console.log(authorization);
-
-	// Ensure getUser didnt reject the request
-	if (res.headersSent) return;
-
-	const user = await User.fromAuthorization(authorization);
-	if (!user) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
+	const user = authorization && await User.fromAuthorization(authorization);
+	if (!authorization || !user) return rejectRequest(res, 401);
 
 	// If POST method
 	if (req.method === "POST") {
 
 		// Check to make sure user dosnt already have 2factor
 		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
-		if (mfa !== undefined && mfa.pending === 0) return res.status(406).json({
-			success: false,
-			message: "406 Not Acceptable",
-			description: "This account already has multifactor authentication enabled."
-		});
+		if (mfa !== undefined && mfa.pending === 0) return rejectRequest(res, 406, "This account already has multifactor authentication enabled.");
 
 		// Delete old MFA token
 		if (mfa !== undefined) await query<MySQLData.MFA>(`DELETE FROM mfa WHERE user = ${ user.id }`);
 
-		// Generate secret
+		// Generate new secret
 		const { secret, qr } = generateSecret({ name: "Ember VPN", account: user.email });
-
-		// Insert into database
 		await query(`INSERT INTO mfa (id, user, secret, pending) VALUES (${ snowflake() }, ${ user.id }, "${ secret }", 1)`);
 
 		// Send link to QR code
-		return res.json({ success: true, qr: qr.replace(/chs=166x166/, "chs=164x164") });
+		return res.json({
+			success: true,
+			qr: qr.replace(/chs=166x166/, "chs=164x164")
+		});
 
 	}
 
@@ -65,11 +47,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Check to make sure user dosnt already have 2factor
 		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
-		if (mfa === undefined || mfa.pending === 1) return res.status(406).json({
-			success: false,
-			message: "406 Not Acceptable",
-			description: "This account does not have multifactor authentication enabled."
-		});
+		if (mfa === undefined || mfa.pending === 1) return rejectRequest(res, 406, "This account does not have multifactor authentication enabled.");
 
 		// Remove 2fa
 		await query<MySQLData.MFA>(`DELETE FROM mfa WHERE user = ${ user.id }`);
@@ -84,54 +62,26 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 		// Check to make sure user dosnt already have 2factor
 		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
-		if (mfa !== undefined && mfa.pending === 0) return res.status(406).json({
-			success: false,
-			message: "406 Not Acceptable",
-			description: "This account already has multifactor authentication enabled."
-		});
+		if (mfa !== undefined && mfa.pending === 0) return rejectRequest(res, 406, "This account already has multifactor authentication enabled.");
 
 		// If not set up
-		if (mfa === undefined) {
-			return res.status(406).json({
-				success: false,
-				message: "406 Not Acceptable",
-				description: "This account is not ready for multifactor authentication setup."
-			});
-		}
+		if (mfa === undefined) return rejectRequest(res, 417, "You have not set up multifactor authentication yet.");
 
 		// Ensure Fields are there
-		if (!req.body.hasOwnProperty("token")) return res.status(406).json({
-			success: false,
-			error: "406 Not Acceptable",
-			description: "Field 'token' is required but received 'undefined'."
-		});
+		if (token) return rejectRequest(res, 400, "Required field 'token' is missing.");
 
-		// Verify token
-		const { token } = req.body;
+		// Check token
 		const verify = verifyToken(mfa.secret, token);
-		if (verify === null || verify.delta !== 0) return res.status(406).json({
-			success: false,
-			message: "406 Not Acceptable",
-			description: "The token is not correct."
-		});
 
 		// If token is correct
-		if (verify.delta === 0) {
+		if (verify?.delta === 0) {
 			await query<MySQLData.MFA>(`UPDATE mfa SET pending = 0 WHERE user = ${ user.id }`);
 			return res.json({ success: true });
 		}
 
-		return res.json({ success: false });
+		// If token is incorrect
+		return rejectRequest(res, 406, "Invalid token.");
 
 	}
-
-	// Continue?
-	if (res.headersSent) return;
-
-	return res.status(405).json({
-		success: false,
-		error: "405 Method Not Allowed",
-		description: `Method '${ req.method }' is not allowed on this endpoint.`
-	});
 
 }

@@ -11,7 +11,7 @@ export const route = "auth/@me";
 export default async function api(req: Request, res: Response) {
 
 	// Get request body
-	const body = { ...req.body, ...req.query };
+	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
 
 	// Check method
 	if ([ "GET", "PATCH", "DELETE", "POST" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
