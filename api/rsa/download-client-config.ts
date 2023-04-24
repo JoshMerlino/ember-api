@@ -16,7 +16,8 @@ export default async function api(req: Request, res: Response) {
 	if (!authorization || !user) return rejectRequest(res, 401);
 
 	// Get the server hash
-	const { hash }: Record<string, string | undefined> = { ...req.body, ...req.query };
+	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
+	const hash = body.hash || body.server;
 	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
 	// Get server from servers
