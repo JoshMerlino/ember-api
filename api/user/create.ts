@@ -5,15 +5,15 @@ import idealPasswd from "ideal-password";
 import { marked } from "marked";
 import path from "path";
 import { v1, v4 } from "uuid";
-
 import manifest from "../../package.json";
 import { query } from "../../src/mysql";
 import smtp from "../../src/smpt";
 import hash from "../../src/util/hash";
 import snowflake from "../../src/util/snowflake";
 
-export const route = "auth/create";
+// FIXME - Clean up this file
 
+export const route = "auth/create";
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	const body = { ...req.body, ...req.query };
