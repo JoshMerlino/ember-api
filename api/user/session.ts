@@ -10,6 +10,8 @@ import { query } from "../../src/mysql";
 import hash from "../../src/util/hash";
 import snowflake from "../../src/util/snowflake";
 
+// FIXME - Clean up this file
+
 export const route = "auth/session";
 
 export default async function api(req: Request, res: Response): Promise<any> {

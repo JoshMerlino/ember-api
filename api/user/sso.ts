@@ -11,6 +11,9 @@ import { query } from "../../src/mysql";
 import smtp from "../../src/smpt";
 import snowflake from "../../src/util/snowflake";
 
+// FIXME - Clean up this file
+
+
 export const route = "auth/sso";
 
 export default async function api(req: Request, res: Response): Promise<any> {

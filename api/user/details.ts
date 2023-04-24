@@ -4,6 +4,9 @@ import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import { query } from "../../src/mysql";
 
+// FIXME - Clean up this file
+
+
 export const route = "auth/details";
 
 export default async function api(req: Request, res: Response): Promise<any> {

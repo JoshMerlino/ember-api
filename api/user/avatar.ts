@@ -1,5 +1,3 @@
-/* eslint @typescript-eslint/no-explicit-any: off */
-/* eslint camelcase: off */
 import { Request, Response } from "express";
 import { access, readdir, rm, writeFile } from "fs/promises";
 import mime from "mime-types";
@@ -7,48 +5,25 @@ import { mkdirp } from "mkdirp";
 import path from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
-import * as validate from "../../src/util/validate";
+import rejectRequest from "../../src/util/rejectRequest";
+import { userID } from "../../src/util/validate";
 
-export const route = [
-	"auth/avatar",
-	"auth/avatar/:userid"
-];
-
-// Function to save the pfp to disk
-export async function savePfp(type: string, content: string | Buffer, id: number): Promise<boolean> {
-	if (Buffer.byteLength(content) > 2 ** 20 * 5) return false;
-	try {
-		await rm(path.resolve(`./userdata/avatar/${ id }/`), { recursive: true });
-	} catch (e) {
-		void e;
-	}
-	await mkdirp(path.resolve(`./userdata/avatar/${ id }/`));
-	await writeFile(path.resolve(`./userdata/avatar/${ id }/default.${ type }`), content);
-	return true;
-}
-
-export default async function api(req: Request, res: Response): Promise<any> {
-
+export const route = [ "auth/avatar", "auth/avatar/:id" ];
+export default async function api(req: Request, res: Response) {
+	
+	// Get request body
 	const body = { ...req.body, ...req.query, ...req.params };
 
-	// If user is GETTING
+	// If the request is to get a pfp
 	if (req.method === "GET") {
 
-		// Get requested userid
-		const { userid } = body;
-		if (!validate.userID(userid)) return res.status(406).json({
-			success: false,
-			message: "406 Not Acceptable",
-			description: "No user ID was specified."
-		});
+		// Get requested user id
+		const { id } = body;
+		if (!userID(id)) return rejectRequest(res, 400, `Invalid user ID '${ id }'.`);
 
 		// Make sure user exists
-		const user = await User.fromID(parseInt(userid.toString()));
-		if (!user) return res.status(406).json({
-			success: false,
-			message: "406 Not Acceptable",
-			description: `No user with ID '${ userid }' exists.`
-		});
+		const user = await User.fromID(parseInt(id.toString()));
+		if (!user) return rejectRequest(res, 404, `User with ID '${ id }' not found.`);
 
 		// Attempt to locate pfp
 		const pfpDir = path.resolve(`./userdata/avatar/${ user.id }/`);
@@ -71,63 +46,51 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	}
 
-	// Verify authorization
+	// Ensure authorization
 	const authorization = getAuthorization(req);
-	if (authorization === undefined) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
+	const user = authorization && await User.fromAuthorization(authorization);
+	if (!authorization || !user) return rejectRequest(res, 401);
 
-	// Get user and 2fa status
-	const user = await User.fromAuthorization(authorization);
-	if (!user) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
-
-	// If user wants to PUT new pfp
+	// If the request is to set a pfp
 	if (req.method === "PUT") {
 
 		// Get content type
 		const TYPE = req.header("content-type") || "unknown/";
 
-		// Get data
+		// Upload the new avatar
 		const data = [ Buffer.alloc(0) ];
-		req.on("data", (chunk: Buffer) => data.push(chunk));
+		req.on("data", chunk => data.push(chunk));
 
 		// On request complete
 		req.on("end", async function() {
 
-			// Get extension
+			// Get file & extension
+			const file = Buffer.concat(data);
 			const ext = mime.extension(TYPE);
 
-			if (TYPE.split("/")[0] !== "image" || !ext) return res.status(415).json({
-				success: false,
-				error: "415 Unsupported Media Type",
-				description: "Uploaded file is not of 'image/*' type."
-			});
+			// Make sure the file is an image
+			if (TYPE.split("/")[0] !== "image" || !ext) return rejectRequest(res, 415, `Unsupported Media Type '${ TYPE }'.`);
+			
+			// Make sure the file is not too large
+			if (Buffer.byteLength(file) > 2 ** 20 * 5) return rejectRequest(res, 413, "Uploaded file exceeds limit of 5 mb.");
 
-			// Try to save the avatar
-			const didSave = await savePfp(ext, Buffer.concat(data), user.id);
+			// Save the avatar
+			await rm(path.resolve(`./userdata/avatar/${ user.id }/`), { recursive: true })
+				.catch(() => null);
+			await mkdirp(path.resolve(`./userdata/avatar/${ user.id }/`));
+			await writeFile(path.resolve(`./userdata/avatar/${ user.id }/default.${ TYPE }`), file);
 
-			// If it failed to save
-			if (!didSave) return res.status(413).json({
-				success: false,
-				error: "413 Payload Too Large",
-				description: "Uploaded file exceeds limit of 5 mb."
-			});
-
+			// Send success
 			return res.json({ success: true });
 
 		});
 
+		// Wait for the request to complete
 		return;
 
 	}
 
-	// If user wants to DELETE pfp
+	// If user wants to reset their pfp
 	if (req.method === "DELETE") {
 
 		// Delete old pfp
@@ -139,13 +102,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	}
 
-	// Continue?
-	if (res.headersSent) return;
-
-	return res.status(405).json({
-		success: false,
-		error: "405 Method Not Allowed",
-		description: `Method '${ req.method }' is not allowed on this endpoint.`
-	});
+	// Reject since method is not allowed
+	return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 
 }

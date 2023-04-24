@@ -1,65 +1,35 @@
-/* eslint @typescript-eslint/no-explicit-any: off */
-/* eslint camelcase: off */
 import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import hash from "../../src/util/hash";
+import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "auth/confirm-password";
-
-export default async function api(req: Request, res: Response): Promise<any> {
-
-	const body = { ...req.body, ...req.query };
-
+export default async function api(req: Request, res: Response) {
+	
 	// Check method
-	if (req.method !== "POST") return res.status(405).json({
-		success: false,
-		error: "405 Method Not Allowed",
-		description: `Method '${ req.method }' is not allowed on this endpoint.`
-	});
-
-	// Verify authorization
+	if (req.method !== "POST") return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
+	
+	// Ensure authorization
 	const authorization = getAuthorization(req);
-	if (authorization === undefined) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
+	const user = authorization && await User.fromAuthorization(authorization);
+	if (!authorization || !user) return rejectRequest(res, 401);
+	
+	// Get request body
+	const { password }: Record<string, string | undefined> = { ...req.body, ...req.query };
 
-	// Get user and 2fa status
-	const user = await User.fromAuthorization(authorization);
-	if (!user) return res.status(401).json({
-		success: false,
-		message: "401 Unauthorized",
-		description: "You likley do not have a valid session token."
-	});
+	// Check if password is valid
+	if (password === undefined || password === "") return rejectRequest(res, 400, "Password is required.");
 
-	// Ensure getUser didnt reject the request
-	if (res.headersSent) return;
-
-	const { password } = body;
-
-	if (password === undefined || password === "") return res.status(406).json({
-		success: false,
-		error: "406 Not Acceptable",
-		description: "Field 'password' is required but received 'undefined'.",
-		readable: "Please enter your password."
-	});
-
+	// Check if password is correct
 	const checksum = hash(password);
 	if (checksum === user.passwd_md5) return res.json({
 		success: true,
-		requested_checksum: checksum,
-		local_checksum: user.passwd_md5
+		requested: checksum,
+		local: user.passwd_md5
 	});
 
-	return res.status(400).json({
-		success: false,
-		error: "400 Bad Request",
-		description: "Checksums do not match.",
-		readable: "Password is incorrect.",
-		requested_checksum: checksum,
-		local_checksum: user.passwd_md5
-	});
+	// Password is incorrect
+	return rejectRequest(res, 401, "Password is incorrect.");
 
 }

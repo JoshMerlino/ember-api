@@ -8,6 +8,9 @@ import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
 import snowflake from "../../src/util/snowflake";
 
+// FIXME - Clean up this file
+
+
 export const route = "auth/mfa";
 
 export default async function api(req: Request, res: Response): Promise<any> {
