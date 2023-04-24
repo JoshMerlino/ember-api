@@ -31,5 +31,5 @@ export default async function api(req: Request, res: Response) {
 		avatar_url: req.url.replace(/\/details$/g, `/avatar/${ user.id }`),
 		success: true
 	});
-	
+
 }

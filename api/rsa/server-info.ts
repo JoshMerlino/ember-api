@@ -4,10 +4,10 @@ import { resolve } from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import rejectRequest from "../../src/util/rejectRequest";
-export const route = "rsa/server-info";
 
+export const route = "rsa/server-info";
 export default async function api(req: Request, res: Response) {
-	
+
 	// TODO: Use MySQL to store server info
 	// Get the access map
 	const accessMap: Record<string, string[]> = JSON.parse(await readFile(resolve("./userdata/accessMap.json"), "utf8"));

@@ -8,8 +8,7 @@ import { isAllowed } from "../../src/ember/isAllowed";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "rsa/download-client-config";
-
-export default async function api(req: Request, res: Response): Promise<any> {
+export default async function api(req: Request, res: Response) {
 
 	// See if the user is authorized
 	const authorization = getAuthorization(req);
@@ -24,10 +23,11 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const servers: Record<string, Ember.Server> = JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
 	const server = servers[hash];
 
+	// Make sure the server exists and the user has access
 	if (!servers.hasOwnProperty(hash)) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
 	if (!await isAllowed(server, user)) return rejectRequest(res, 403, `You are not allowed to access server with ID '${ hash }'.`);
 
-	// Download the CA certificate
+	// Initialize connections
 	const ssh = new NodeSSH;
 	await ssh.connect({
 		host: "ca.embervpn.org",
@@ -82,24 +82,19 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		.replace(/{{ subnet }}/g, subnet)
 		.replace(/{{ network }}/g, network)
 		.replace(/{{ hostname }}/g, hostname)
-
-		// .split("\n").filter(line => line.length > 0 && !line.startsWith("#") && !line.startsWith(";")).join("\n")
 	);
 
 	// Write clientConfig to tmp && upload
 	await writeFile("/tmp/base.conf", clientConfig);
 	await vpn.putFile("/tmp/base.conf", "/tmp/base.conf");
 	await vpn.execCommand("cp /tmp/base.conf ~/client-configs/", { cwd: "/root" });
-
-	// Chown
 	await vpn.execCommand("chown root:root ~/client-configs/keys/*", { cwd: "/root" });
 
-	// Make the config
+	// Make & download the config
 	await vpn.execCommand(`./make_config.sh ${ user.id }`, { cwd: "/root/client-configs" });
-
-	// Download the config
 	const { stdout: ovpn } = await vpn.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" });
 
+	// Send the config to the user
 	res.json({
 		success: true,
 		server,

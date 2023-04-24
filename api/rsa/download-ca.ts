@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { NodeSSH } from "node-ssh";
 export const route = "rsa/download-ca";
 
-export default async function api(req: Request, res: Response): Promise<any> {
+export default async function api(req: Request, res: Response) {
 
 	// Download the CA certificate
 	const ssh = new NodeSSH;
@@ -20,6 +20,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	res.setHeader("Content-Disposition", "attachment; filename=ca.crt");
 	res.send(ca);
 
+	// Cleanup
 	ssh.dispose();
 
 }

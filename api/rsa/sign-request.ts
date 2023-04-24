@@ -2,16 +2,13 @@ import { createHash } from "crypto";
 import { Request, Response } from "express";
 import { writeFile } from "fs/promises";
 import { NodeSSH } from "node-ssh";
+import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "rsa/sign-request";
+export default async function api(req: Request, res: Response) {
 
-export default async function api(req: Request, res: Response): Promise<any> {
-
-	// Make sure its POST
-	if (req.method !== "POST") {
-		res.status(405).send("Method Not Allowed");
-		return;
-	}
+	// Check method
+	if ([ "POST" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 
 	// Get the certificate request
 	const request = Buffer.from(req.body.req, "base64").toString("utf8");
@@ -28,16 +25,12 @@ export default async function api(req: Request, res: Response): Promise<any> {
 		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8")
 	});
 
-	// Import request into CA
-	// Await ssh.writeFile(`/tmp/${hash}.req`, request);
-
 	// Send request to CA
 	await writeFile(`/tmp/${ hash }.req`, request, "utf8");
 	await ssh.putFile(`/tmp/${ hash }.req`, `/tmp/${ hash }.req`);
 
+	// Import & sign request
 	await ssh.execCommand(`~/easy-rsa/easyrsa --batch import-req /tmp/${ hash }.req ${ hash }`, { cwd: "/root/easy-rsa" });
-
-	// Sign request
 	await ssh.execCommand(`~/easy-rsa/easyrsa --batch sign-req server ${ hash }`, { cwd: "/root/easy-rsa" });
 
 	// Download certificate
@@ -48,6 +41,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	res.setHeader("Content-Disposition", `attachment; filename=${ hash }.key`);
 	res.send(cert);
 
+	// Cleanup
 	ssh.dispose();
 
 }

@@ -46,7 +46,7 @@ export default async function api(req: Request, res: Response) {
 			// Update email
 			user.email = email;
 			await query(`UPDATE users SET email = "${ email }" WHERE id = ${ user.id }`);
-			
+
 		}
 
 		// If change password
@@ -68,20 +68,20 @@ export default async function api(req: Request, res: Response) {
 			user.passwd_length = password.length;
 			user.passwd_changed_ms = Date.now();
 			await query(`UPDATE users SET passwd_md5 = "${ md5 }", passwd_length = ${ password.length }, passwd_changed_ms = ${ user.passwd_changed_ms } WHERE id = ${ user.id }`);
-			
+
 		}
 
 	}
 
 	// If the method is used to delete the current user
 	if (req.method === "DELETE") {
-		
+
 		// TODO: Safer delete user
 		await query(`DELETE FROM mfa WHERE user = '${ user.id }';`);
 		await query(`DELETE FROM sessions WHERE user = '${ user.id }';`);
 		await query(`DELETE FROM sso WHERE user = '${ user.id }';`);
 		await query(`DELETE FROM users WHERE id = '${ user.id }';`);
-		
+
 		// Return the response
 		return res.json({
 			success: true,

@@ -9,14 +9,12 @@ import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
 
-// FIXME - Clean up this file
-
 export const route = "auth/session";
 export default async function api(req: Request, res: Response) {
 
 	// Get body
 	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
-	
+
 	// Check method
 	if ([ "POST", "DELETE", "GET" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 
@@ -69,7 +67,7 @@ export default async function api(req: Request, res: Response) {
 			success: true,
 			session_id
 		});
-		
+
 		return res.redirect(307, "./@me");
 
 	}

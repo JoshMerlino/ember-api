@@ -10,7 +10,7 @@ import { userID } from "../../src/util/validate";
 
 export const route = [ "auth/avatar", "auth/avatar/:id" ];
 export default async function api(req: Request, res: Response) {
-	
+
 	// Get request body
 	const body = { ...req.body, ...req.query, ...req.params };
 
@@ -70,7 +70,7 @@ export default async function api(req: Request, res: Response) {
 
 			// Make sure the file is an image
 			if (TYPE.split("/")[0] !== "image" || !ext) return rejectRequest(res, 415, `Unsupported Media Type '${ TYPE }'.`);
-			
+
 			// Make sure the file is not too large
 			if (Buffer.byteLength(file) > 2 ** 20 * 5) return rejectRequest(res, 413, "Uploaded file exceeds limit of 5 mb.");
 

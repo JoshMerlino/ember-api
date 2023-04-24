@@ -5,14 +5,6 @@ export default function rejectRequest(res: Response, errorCode = 500, readable?:
 	res.status(errorCode);
 	switch (errorCode) {
 
-	default:
-		return res.json({
-			success: false,
-			message: `${ errorCode } Unknown Error`,
-			description: "An error occurred while processing the request.",
-			readable
-		});
-
 	case 400:
 		return res.json({
 			success: false,
@@ -76,7 +68,7 @@ export default function rejectRequest(res: Response, errorCode = 500, readable?:
 			description: "The request entity is larger than the server is willing or able to process.",
 			readable
 		});
-		
+
 	case 415:
 		return res.json({
 			success: false,
@@ -84,7 +76,7 @@ export default function rejectRequest(res: Response, errorCode = 500, readable?:
 			description: "The request entity has a media type which the server or resource does not support.",
 			readable
 		});
-			
+
 	case 429:
 		return res.json({
 			success: false,
@@ -97,6 +89,14 @@ export default function rejectRequest(res: Response, errorCode = 500, readable?:
 		return res.json({
 			success: false,
 			message: "500 Internal Server Error",
+			description: "An error occurred while processing the request.",
+			readable
+		});
+
+	default:
+		return res.json({
+			success: false,
+			message: `${ errorCode } Unknown Error`,
 			description: "An error occurred while processing the request.",
 			readable
 		});

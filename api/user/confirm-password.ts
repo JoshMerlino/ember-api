@@ -6,15 +6,15 @@ import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "auth/confirm-password";
 export default async function api(req: Request, res: Response) {
-	
+
 	// Check method
 	if (req.method !== "POST") return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
-	
+
 	// Ensure authorization
 	const authorization = getAuthorization(req);
 	const user = authorization && await User.fromAuthorization(authorization);
 	if (!authorization || !user) return rejectRequest(res, 401);
-	
+
 	// Get request body
 	const { password }: Record<string, string | undefined> = { ...req.body, ...req.query };
 

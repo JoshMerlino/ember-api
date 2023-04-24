@@ -64,7 +64,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 			// Redirect to login
 			return res.redirect(307, "./session");
-			
+
 		}
 
 		// Respond with error
@@ -116,7 +116,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Respond with redirect to generate session
 	if (noredirect) return res.json({ success: true });
-		
+
 	// Redirect to login
 	return res.redirect(307, "./session");
 
