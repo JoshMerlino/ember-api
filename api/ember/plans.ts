@@ -1,32 +1,62 @@
 import { Request, Response } from "express";
-import User from "../../src/auth/User";
-import getAuthorization from "../../src/auth/getAuthorization";
 import { stripe } from "../../src/stripe";
 
-export const route = "ember/plans";
-export default async function api(req: Request, res: Response) {
+const days = {
+	"day": 1,
+	"week": 7,
+	"month": 30,
+	"year": 365
+};
 
+// Create cache
+const plans: Record<string, Ember.Plan> = {};
+setInterval(async function cache() {
+	
 	// Get all packages
-	const { data: packages } = await stripe.products.list({
+	const { data } = await stripe.products.list({
 		limit: 100,
-		active: true,
 		expand: [ "data.default_price", "data.price" ]
 	});
 
-	// See if the user is authorized
-	const authorization = getAuthorization(req);
-	const user = authorization && await User.fromAuthorization(authorization);
-	if (!authorization || !user) return res.json({ success: true, packages });
+	// Fill cache with new data
+	await Promise.all(data.filter(a => a.active).map(async product => ({
+		id: product.id,
+		name: product.name,
+		description: product.description || product.name,
+		image: product.images[0],
+		features: "features" in product.metadata ? product.metadata.features.split(";").map(a => a.trim()) : [],
+		meta: product.metadata || {},
+		default_price: typeof product.default_price === "string" ? product.default_price : product.default_price?.id,
+		prices: await stripe.prices.list({
+			product: product.id,
+			active: true
+		}).then(({ data }) => data.map(price => ({
+			id: price.id,
+			currency: price.currency,
+			type: price.type,
+			amount: (price.unit_amount || 0) / 100,
+			interval: price.recurring ? price.recurring.interval_count * days[price.recurring.interval] : -1,
+		} as Ember.Price))).catch(() => [])
+	}))).then(d => d.forEach(plan => plans[plan.id] = plan));
 
-	// Get active subscription
-	const { subscription } = user.getMeta();
-	const currentSubscription = subscription && await stripe.subscriptions.retrieve(subscription, { expand: [ "plan.product" ]});
+	// Remove inactive packages
+	Object.values(data).filter(a => !a.active).forEach(product => delete plans[product.id]);
 
+}, 1000);
+
+export const route = "v2/ember/plans";
+export default async function api(req: Request, res: Response) {
+
+	// Hold request until cache is ready
+	if (!Object.keys(plans).length) {
+		setTimeout(() => api(req, res), 10);
+		return;
+	}
+	
 	// Return the packages
-	return res.json({
+	res.json({
 		success: true,
-		currentSubscription,
-		packages
+		plans
 	});
 
 }

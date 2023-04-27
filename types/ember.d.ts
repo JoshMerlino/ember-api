@@ -54,4 +54,22 @@ declare namespace Ember {
 		dst_savings: number
 	}
 
+	export interface Price {
+		id: string;
+		currency: string;
+		type: "one-time" | "recurring";
+		amount: number;
+		interval: number;
+	}
+
+	export interface Plan {
+		id: string;
+		name: string;
+		description: string;
+		image: string;
+		features: string[];
+		prices: Price[];
+		meta: Record<string, string>;
+	}
+
 }
