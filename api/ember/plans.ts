@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { stripe } from "../../src/stripe";
 
+// Map of units to their amount of days
 const days = {
 	"day": 1,
 	"week": 7,
