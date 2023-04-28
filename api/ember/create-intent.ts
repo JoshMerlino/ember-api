@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import { stripe } from "../../src/stripe";
+import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "ember/create-intent";
@@ -23,15 +24,16 @@ export default async function api(req: Request, res: Response) {
 	// Fetch user if possible
 	const user = _user && await User.fromID(parseInt(_user.toString()));
 
+	// Generate idempotent key
+	const idempotencyKey = user ? hash(`${ price.id }-${ user?.id || "guest" }`) : undefined;
+
 	// Create payment intent
 	const intent = await stripe.paymentIntents.create({
 		amount: price.unit_amount || 0,
 		currency: price.currency || "usd",
 		receipt_email: user?.email || undefined,
-		automatic_payment_methods: {
-			enabled: true
-		}
-	});
+		payment_method_types: [ "card", "cashapp", "venmo" ],
+	}, { idempotencyKey	});
 
 	// Send secret
 	return res.json({
