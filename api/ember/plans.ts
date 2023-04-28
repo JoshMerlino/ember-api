@@ -58,7 +58,8 @@ export default async function api(req: Request, res: Response) {
 	// Return the packages
 	res.json({
 		success: true,
-		plans
+		plans,
+		token: process.env.STRIPE_PK
 	});
 
 }
