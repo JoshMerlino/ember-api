@@ -35,6 +35,7 @@ setInterval(async function cache() {
 			id: price.id,
 			currency: price.currency,
 			type: price.type,
+			tax: price.tax_behavior === "inclusive" ? 0 : ((price.unit_amount || 0) / 100) * 0.06,
 			amount: (price.unit_amount || 0) / 100,
 			interval: price.recurring ? price.recurring.interval_count * days[price.recurring.interval] : -1,
 		} as Ember.Price))).catch(() => [])
