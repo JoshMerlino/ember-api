@@ -7,28 +7,44 @@ import getAuthorization from "../../src/auth/getAuthorization";
 import { isAllowed } from "../../src/ember/isAllowed";
 import rejectRequest from "../../src/util/rejectRequest";
 
-let servers: Record<string, Ember.Server> | undefined = {};
-setInterval(() => servers = undefined, 1000 * 5);
-
 // Helper function to ping a server
-export const ping = (server: Ember.Server) => new Promise<number | false>(resolve => {
-	const start = Date.now();
-	const socket = new Socket;
-	socket.setTimeout(1000);
-	socket.connect(parseInt(server.port), server.ip, () => {
-		socket.end();
-		resolve(Date.now() - start);
+export function ping(server: Ember.Server, timeout = 2000) {
+	return new Promise<number | false>(resolve => {
+		const start = Date.now();
+		const socket = new Socket;
+		socket.setTimeout(timeout);
+		socket.connect(parseInt(server.port), server.ip, () => {
+			socket.end();
+			resolve(Date.now() - start);
+		});
+		socket.on("error", () => resolve(false));
+		socket.on("timeout", () => resolve(false));
 	});
-	socket.on("error", () => resolve(false));
-	socket.on("timeout", () => resolve(false));
-});
+}
+
+// Create cache
+const servers: Record<string, Ember.Server> = {};
+setInterval(async function cache() {
+
+	// Pull servers from file
+	Object.values(JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8")) as Record<string, Ember.Server>)
+		.map(server => servers[server.hash] = server);
+	
+	// Ping servers
+	await Promise.all(Object.values(servers).map(async server => {
+		if (servers && !servers[server.hash].ping) servers[server.hash].ping = await ping(server);
+	}));
+
+}, 1000);
 
 export const route = "ember/servers";
 export default async function api(req: Request, res: Response): Promise<void | Response> {
 
-	// TODO: Get servers from mysql
-	// Get servers
-	servers = servers || JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8")) as Record<string, Ember.Server>;
+	// Hold request until cache is ready
+	if (!Object.keys(servers).length) {
+		setTimeout(() => api(req, res), 10);
+		return;
+	}
 
 	// Ensure authorization
 	const authorization = getAuthorization(req);
@@ -40,11 +56,6 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	for (const server of Object.values(servers)) {
 		if (await isAllowed(server, user)) usersServers[server.hash] = server;
 	}
-
-	// Get ping for each server
-	await Promise.all(Object.values(usersServers).map(async server => {
-		if (servers && !servers[server.hash].ping) servers[server.hash].ping = await ping(server);
-	}));
 
 	// Return servers
 	return res.json({
