@@ -78,7 +78,7 @@ export default async function api(req: Request, res: Response) {
 			await rm(path.resolve(`./userdata/avatar/${ user.id }/`), { recursive: true })
 				.catch(() => null);
 			await mkdirp(path.resolve(`./userdata/avatar/${ user.id }/`));
-			await writeFile(path.resolve(`./userdata/avatar/${ user.id }/default.${ TYPE }`), file);
+			await writeFile(path.resolve(`./userdata/avatar/${ user.id }/default.${ ext }`), file);
 
 			// Send success
 			return res.json({ success: true });
