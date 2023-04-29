@@ -3,6 +3,7 @@ import idealPasswd from "ideal-password";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { query } from "../../src/mysql";
+import { stripe } from "../../src/stripe";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 import { emailAddress } from "../../src/util/validate";
@@ -21,6 +22,9 @@ export default async function api(req: Request, res: Response) {
 	const user = authorization && await User.fromAuthorization(authorization);
 	if (!authorization || !user) return rejectRequest(res, 401);
 
+	// Check if user is a customer
+	const customer = await user.getCustomer();
+
 	// If the method is used to modify the current user
 	if (req.method === "PATCH") {
 
@@ -30,21 +34,23 @@ export default async function api(req: Request, res: Response) {
 		// If change username
 		if (username) {
 			user.username = username;
+			await stripe.customers.update(customer.id, { name: username });
 			await query(`UPDATE users SET username = "${ username }" WHERE id = ${ user.id }`);
 		}
-
+		
 		// If change email
 		if (email) {
-
+			
 			// Validate email
 			if (!emailAddress(email)) return rejectRequest(res, 406, `Email address '${ email }' is not a valid email address.`);
-
+			
 			// Check if email is already in use
 			const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email.toLowerCase() }";`);
 			if (users.filter(({ id }) => id !== user.id).length !== 0) return rejectRequest(res, 406, `Email address '${ email }' is already in use.`);
-
+			
 			// Update email
 			user.email = email;
+			await stripe.customers.update(customer.id, { email });
 			await query(`UPDATE users SET email = "${ email }" WHERE id = ${ user.id }`);
 
 		}
@@ -96,7 +102,8 @@ export default async function api(req: Request, res: Response) {
 		user: {
 			...user,
 			avatar_url: req.url.replace(/@me$/g, `avatar/${ user.id }`),
-		}
+		},
+		customer
 	});
 
 }

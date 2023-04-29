@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { mkdirp } from "mkdirp";
 import path from "path";
 import { query } from "../mysql";
+import { stripe } from "../stripe";
 
 export type ConstructorArgs = {
     userRow: MySQLData.User;
@@ -41,7 +42,7 @@ export default class User<Meta = Auth.Meta> {
 	public flags: Auth.BitField<Auth.Flags>;
 
 	public meta: Meta;
-
+	
 	constructor({ userRow, mfaRow, sessionRow, sessions, roles, authorization }: ConstructorArgs, __construct_signature: symbol) {
 
 		// Ensure the user class is instantiated through the static methods.
@@ -63,6 +64,25 @@ export default class User<Meta = Auth.Meta> {
 		this.flags = userRow.flags || 0;
 		this.sessions = sessions.map(session => <Auth.Session><unknown>{ ...session, current: sessionRow && session.session_id === sessionRow.session_id });
 		this.meta = this.getMeta();
+	}
+	
+	public async getCustomer() {
+		
+		// Get current customer id
+		const [ { customer: id } ] = await query<{ customer: string }>(`SELECT customer FROM users WHERE id = ${ this.id };`);
+
+		// Get the customer from Stripe
+		return await stripe.customers.retrieve(id)
+			.catch(async() => {
+				const customer = await stripe.customers.create({
+					name: this.username,
+					email: this.email
+				});
+
+				// Update the user's customer ID
+				await query(`UPDATE users SET customer = "${ customer.id }" WHERE id = ${ this.id };`);
+				return customer;
+			});
 
 	}
 
