@@ -8,6 +8,7 @@ import { v1, v4 } from "uuid";
 import manifest from "../../package.json";
 import { query } from "../../src/mysql";
 import smtp from "../../src/smpt";
+import { stripe } from "../../src/stripe";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
@@ -86,8 +87,20 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const sso = v4();
 	const expires_after = now + 1000 * 60 * 15;
 
+	// Create stripe customer
+	const customer = await stripe.customers.create({
+		name: uuid.toString(),
+		email: email.toLowerCase(),
+		metadata: {
+			username
+		}
+	}).catch(() => null);
+
+	// Check if customer was created
+	if (!customer) return rejectRequest(res, 500, "Failed to create customer.");
+
 	// Insert into database
-	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms) VALUES (${ uuid }, "${ username }", "${ email.toLowerCase() }", "${ md5 }", ${ now }, ${ password.length }, ${ now });`);
+	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, customer) VALUES (${ uuid }, "${ username }", "${ email.toLowerCase() }", "${ md5 }", ${ now }, ${ password.length }, ${ now }, "${ customer.id }");`);
 
 	// Insert SSO token to database
 	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${ snowflake() }, "${ sso }", ${ uuid }, ${ expires_after })`);
