@@ -1,6 +1,3 @@
-import { readFileSync, writeFileSync } from "fs";
-import { mkdirp } from "mkdirp";
-import path from "path";
 import { query } from "../mysql";
 import { stripe } from "../stripe";
 
@@ -40,8 +37,6 @@ export default class User<Meta = Auth.Meta> {
 	public roles: Auth.Role[];
 
 	public flags: Auth.BitField<Auth.Flags>;
-
-	public meta: Meta;
 	
 	constructor({ userRow, mfaRow, sessionRow, sessions, roles, authorization }: ConstructorArgs, __construct_signature: symbol) {
 
@@ -63,7 +58,7 @@ export default class User<Meta = Auth.Meta> {
 		this.roles = roles.map(role => <Auth.Role>role).filter(role => userRow.roles.split(":").includes(role.id.toString()));
 		this.flags = userRow.flags || 0;
 		this.sessions = sessions.map(session => <Auth.Session><unknown>{ ...session, current: sessionRow && session.session_id === sessionRow.session_id });
-		this.meta = this.getMeta();
+
 	}
 	
 	public async getCustomer() {
@@ -84,26 +79,6 @@ export default class User<Meta = Auth.Meta> {
 				return customer;
 			});
 
-	}
-
-	public getMeta() {
-		mkdirp.sync(path.resolve("userdata/users/"));
-		try {
-			const store = readFileSync(path.resolve("userdata/users/", `${ this.id }.json`), "utf-8");
-			return this.meta = JSON.parse(store) as Meta;
-		} catch (e) {
-			writeFileSync(path.resolve("userdata/users/", `${ this.id }.json`), JSON.stringify({}), "utf-8");
-			return {} as Meta;
-		}
-	}
-
-	public setMeta(key: keyof Meta, value: Meta[keyof Meta]) {
-
-		mkdirp(path.resolve("userdata/users/"));
-		const store = readFileSync(path.resolve("userdata/users/", `${ this.id }.json`), "utf-8");
-		const meta = JSON.parse(store) as Meta;
-		meta[key] = value;
-		writeFileSync(path.resolve("userdata/users/", `${ this.id }.json`), JSON.stringify(meta), "utf-8");
 	}
 
 	// Get the user by the session ID
