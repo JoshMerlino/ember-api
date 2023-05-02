@@ -5,7 +5,7 @@ import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import rejectRequest from "../../src/util/rejectRequest";
 
-export const route = "ember/download-config";
+export const route = [ "ember/download-config", "rsa/download-client-config" ];
 export default async function api(req: Request, res: Response) {
 
 	// Ensure authorization
