@@ -2,13 +2,12 @@ import { Request, Response } from "express";
 import { readFile, writeFile } from "fs/promises";
 import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
-import User from "../../src/auth/User";
-import getAuthorization from "../../src/auth/getAuthorization";
-import { isAllowed } from "../../src/ember/isAllowed";
-import { query } from "../../src/mysql";
-import rejectRequest from "../../src/util/rejectRequest";
+import User from "../../../src/auth/User";
+import getAuthorization from "../../../src/auth/getAuthorization";
+import { isAllowed } from "../../../src/ember/isAllowed";
+import rejectRequest from "../../../src/util/rejectRequest";
 
-export const route = "v2/rsa/download-client-config";
+export const route = "rsa/download-client-config";
 export default async function api(req: Request, res: Response) {
 
 	// See if the user is authorized
@@ -21,27 +20,14 @@ export default async function api(req: Request, res: Response) {
 	const hash = body.hash || body.server;
 	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
-	const [ serverRow ] = await query<MySQLData.Server>(`SELECT * FROM servers WHERE uuid="${ hash }";`);
-	if (!serverRow) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
-	
-	const server = {
-		ip: serverRow.address.split(" ").map(a => a.trim())[1],
-		proto: serverRow.address.split(" ").map(a => a.trim())[0],
-		port: serverRow.address.split(" ").map(a => a.trim())[2],
-		network: serverRow.address.split(" ").map(a => a.trim())[3],
-		subnet: serverRow.address.split(" ").map(a => a.trim())[4],
-		hash: serverRow.uuid,
-		location: {
-			latitude: serverRow.latitude / 1e10,
-			longitude: serverRow.longitude / 1e10,
-			countryCode: serverRow.location.split("_")[1].split(";")[0],
-			country: serverRow.location.split(";")[1].trim(),
-			state: serverRow.location.split(";")[2].trim()
-		}
-	};
-	
+	// Get server from servers
+	const servers: Record<string, Ember.Server> = JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
+	const server = servers[hash];
+
+	// Make sure the server exists and the user has access
+	if (!servers.hasOwnProperty(hash)) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
 	if (!await isAllowed(server, user)) return rejectRequest(res, 403, `You are not allowed to access server with ID '${ hash }'.`);
-	
+
 	// Initialize connections
 	const ssh = new NodeSSH;
 	await ssh.connect({
@@ -87,14 +73,16 @@ export default async function api(req: Request, res: Response) {
 	await vpn.execCommand("cp /etc/openvpn/server/{ta.key,ca.crt} ~/client-configs/keys/", { cwd: "/root" });
 
 	// Send the updated client config base to the VPN server
-	const { ip, proto, port, network, subnet } = server;
+	const { ip, hostname, iface, proto, port, network, subnet } = server as any;
 	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
 		.replace(/{{ ip }}/g, ip)
 		.replace(/{{ id }}/g, hash)
 		.replace(/{{ port }}/g, port)
 		.replace(/{{ proto }}/g, proto)
+		.replace(/{{ iface }}/g, iface)
 		.replace(/{{ subnet }}/g, subnet)
 		.replace(/{{ network }}/g, network)
+		.replace(/{{ hostname }}/g, hostname)
 	);
 
 	// Write clientConfig to tmp && upload

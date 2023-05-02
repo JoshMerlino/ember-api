@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { query } from "../../src/mysql";
 import rejectRequest from "../../src/util/rejectRequest";
 
-export const route = "ember/servers";
+export const route = "v2/ember/servers";
 export default async function api(req: Request, res: Response): Promise<void | Response> {
 
 	const serverRow = await query<MySQLData.Server>("SELECT * FROM servers;");
