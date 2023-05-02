@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { stripe } from "../../src/stripe";
+import { publicKey, stripe } from "../../src/stripe";
 
 // Map of units to their amount of days
 const days = {
@@ -59,7 +59,7 @@ export default async function api(req: Request, res: Response) {
 	res.json({
 		success: true,
 		plans,
-		token: process.env.STRIPE_PK
+		token: publicKey,
 	});
 
 }

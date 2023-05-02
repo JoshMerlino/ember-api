@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
-import { stripe } from "../../src/stripe";
+import { publicKey, stripe } from "../../src/stripe";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 
@@ -49,7 +49,8 @@ export default async function api(req: Request, res: Response) {
 	return res.json({
 		success: true,
 		intent: intent.id,
-		secret: intent.client_secret
+		secret: intent.client_secret,
+		public: publicKey,
 	});
 
 }
