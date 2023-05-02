@@ -61,7 +61,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	return res.json({
 		success: true,
 		servers: Object.values(usersServers)
-			.filter(server => server.ping !== false)
+			.filter(server => server.ping)
 			.reduce((obj, server) => {
 				obj[server.hash] = server;
 				return obj;
