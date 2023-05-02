@@ -14,7 +14,7 @@ export default async function api(req: Request, res: Response) {
 	const { ip, hostname, iface, proto, port, network, subnet } = server;
 
 	// Generate hash
-	const hash = createHash("sha256").update(JSON.stringify(server))
+	const hash = createHash("sha256").update(JSON.stringify({ ip, proto, port }))
 		.digest("hex");
 
 	// Check method
@@ -37,19 +37,24 @@ export default async function api(req: Request, res: Response) {
 	if (!location) return rejectRequest(res, 500, "Failed to get server location.");
 
 	// Get server ip address and serialize location
-	const address = `${ proto } ${ ip } ${ port }`;
+	const address = [
+		proto,
+		ip,
+		port,
+		network,
+		subnet
+	].join(" ");
 	const geo = [
 		`${ location.continent_code }_${ location.country_code2 }`,
 		location.country_name,
-		location.state_prov || location.country_capital
+		location.district || location.state_prov || location.country_capital
 	].join("; ");
 	
 	// Insert server into database
-	const resp = await query(`INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ("${ hash }", "${ address }", ${ location.lat }, ${ location.long }, "${ geo }"))`)
-		.catch(() => null);
-	
-	// Check response
-	if (!resp) return rejectRequest(res, 500, "Failed to insert server into database.");
+	// If server exists
+	const [ serverRow ] = await query(`SELECT * FROM servers WHERE uuid = "${ hash }"`);
+	if (!serverRow) await query(`INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ("${ hash }", "${ address }", ${ location.latitude * 1e10 }, ${ location.longitude * 1e10 }, "${ geo }");`);
+	else await query(`UPDATE servers SET address = "${ address }", latitude = ${ location.latitude * 1e10 }, longitude = ${ location.longitude * 1e10 }, location = "${ geo }" WHERE uuid = "${ hash }";`);
 
 	// Read config & inject data
 	const config = await readFile(resolve("./default/ovpn/server.conf"), "utf8").then(config => config

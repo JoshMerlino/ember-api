@@ -39,7 +39,7 @@ setInterval(async function cache() {
 			amount: (price.unit_amount || 0) / 100,
 			interval: price.recurring ? price.recurring.interval_count * days[price.recurring.interval] : -1,
 		} as Ember.Price))).catch(() => [])
-	}))).then(d => d.forEach(plan => plans[plan.id] = plan));
+	}))).then(d => d.forEach(plan => plans[plan.id] = plan as Ember.Plan));
 
 	// Remove inactive packages
 	Object.values(data).filter(a => !a.active).forEach(product => delete plans[product.id]);

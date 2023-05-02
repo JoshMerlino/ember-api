@@ -2,7 +2,7 @@
 
 declare namespace MySQLData {
 
-	declare interface User {
+	export interface User {
 		id: number;
 		username: string;
 		email: string;
@@ -14,7 +14,7 @@ declare namespace MySQLData {
 		flags: number;
 	}
 
-	declare interface Session {
+	export interface Session {
 		id: number;
 		session_id: string;
 		user: number;
@@ -25,14 +25,14 @@ declare namespace MySQLData {
 		ip_address: string;
 	}
 
-	declare interface MFA {
+	export interface MFA {
 		id: number;
 		user: number;
 		secret: string;
 		pending: 0 | 1;
 	}
 
-	declare interface SSO {
+	export interface SSO {
 		id: number;
 		user: number;
 		ssokey: string;
@@ -40,11 +40,20 @@ declare namespace MySQLData {
 		prevent_authorization: boolean;
 	}
 
-	declare interface Role {
+	export interface Role {
 		id: number;
 		name: string;
 		color: number;
 		flags: number;
+	}
+
+	export interface Server {
+		id: number
+		uuid: string
+		address: string
+		latitude: number
+		longitude: number
+		location: string
 	}
 
 }

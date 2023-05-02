@@ -1,71 +1,41 @@
 import { Request, Response } from "express";
-import { readFile } from "fs/promises";
-import { Socket } from "net";
-import { resolve } from "path";
-import User from "../../src/auth/User";
-import getAuthorization from "../../src/auth/getAuthorization";
-import { isAllowed } from "../../src/ember/isAllowed";
+import { query } from "../../src/mysql";
 import rejectRequest from "../../src/util/rejectRequest";
-
-// Helper function to ping a server
-export function ping(server: Ember.Server, timeout = 2000) {
-	return new Promise<number | false>(resolve => {
-		const start = Date.now();
-		const socket = new Socket;
-		socket.setTimeout(timeout);
-		socket.connect(parseInt(server.port), server.ip, () => {
-			socket.end();
-			resolve(Date.now() - start);
-		});
-		socket.on("error", () => resolve(false));
-		socket.on("timeout", () => resolve(false));
-	});
-}
-
-// Create cache
-const servers: Record<string, Ember.Server> = {};
-setInterval(async function cache() {
-
-	// Pull servers from file
-	Object.values(JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8")) as Record<string, Ember.Server>)
-		.map(server => servers[server.hash] = server);
-	
-	// Ping servers
-	await Promise.all(Object.values(servers).map(async server => {
-		if (servers && !servers[server.hash].ping) servers[server.hash].ping = await ping(server);
-	}));
-
-}, 1000);
 
 export const route = "ember/servers";
 export default async function api(req: Request, res: Response): Promise<void | Response> {
 
-	// Hold request until cache is ready
-	if (!Object.keys(servers).length) {
-		setTimeout(() => api(req, res), 10);
-		return;
-	}
+	const serverRow = await query<MySQLData.Server>("SELECT * FROM servers;");
+	if (!serverRow) return rejectRequest(res, 500, "No servers found");
 
-	// Ensure authorization
-	const authorization = getAuthorization(req);
-	const user = authorization && await User.fromAuthorization(authorization);
-	if (!authorization || !user) return rejectRequest(res, 401);
-
-	// Filter servers that the user is allowed to see
-	const usersServers: Record<string, Ember.Server> = {};
-	for (const server of Object.values(servers)) {
-		if (await isAllowed(server, user)) usersServers[server.hash] = server;
-	}
+	// Loop through servers
+	const servers = serverRow.map(server => {
+		const ip = server.address
+			.split(" ")
+			.map(a => a.trim())[1];
+	
+		const [ code, country, state ] = server.location.split(";");
+		return {
+			ip,
+			hash: server.uuid,
+			location: {
+				latitude: server.latitude / 1e10,
+				longitude: server.longitude / 1e10,
+				countryCode: code.split("_")[1],
+				country,
+				state
+			}
+		};
+	});
 
 	// Return servers
 	return res.json({
 		success: true,
-		servers: Object.values(usersServers)
-			.filter(server => server.ping)
-			.reduce((obj, server) => {
-				obj[server.hash] = server;
-				return obj;
-			}, {} as Record<string, Ember.Server>)
+		servers: servers.reduce((obj, server) => {
+			obj[server.hash] = server;
+			return obj;
+		}, {} as Record<string, Ember.Server>)
+			
 	});
 
 }
