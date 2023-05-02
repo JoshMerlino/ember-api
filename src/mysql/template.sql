@@ -111,6 +111,21 @@ CREATE TABLE `users` (
   `customer` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `servers`
+--
+
+CREATE TABLE `servers` (
+  `id` int(11) NOT NULL,
+  `uuid` text NOT NULL,
+  `address` text NOT NULL,
+  `latitude` int(11) NOT NULL,
+  `longitude` int(11) NOT NULL,
+  `location` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
@@ -152,6 +167,13 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `users_id_unique` (`id`);
 
 --
+-- Indexes for table `servers`
+--
+ALTER TABLE `servers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uuid` (`uuid`) USING HASH;
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -160,6 +182,10 @@ ALTER TABLE `users`
 --
 ALTER TABLE `transactions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `servers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

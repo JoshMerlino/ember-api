@@ -1,8 +1,9 @@
 import { createHash } from "crypto";
 import { Request, Response } from "express";
-import { readFile, writeFile } from "fs/promises";
+import { readFile } from "fs/promises";
 import fetch from "node-fetch";
 import { resolve } from "path";
+import { query } from "../../src/mysql";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "rsa/download-server-config";
@@ -27,11 +28,16 @@ export default async function api(req: Request, res: Response) {
 	// Check location
 	if (!location) return rejectRequest(res, 500, "Failed to get server location.");
 
-	// TODO: Use MySQL to store server info
-	// Read servers
-	const servers = JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
-	servers[hash] = { ...server, hash, location };
-	await writeFile(resolve("./userdata/servers.json"), JSON.stringify(servers, null, 4));
+	// Get server ip address and serialize location
+	const address = `${ proto } ${ ip } ${ port }`;
+	const geo = [
+		`${ location.continent_code }_${ location.country_code2 }`,
+		location.country_name,
+		location.state_prov || location.country_capital
+	].join("; ");
+	
+	// Insert server into database
+	await query(`INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ("${ hash }", "${ address }", ${ location.latitude }, ${ location.longitude }, "${ geo }"))`);
 
 	// Read config & inject data
 	const config = await readFile(resolve("./default/ovpn/server.conf"), "utf8").then(config => config
