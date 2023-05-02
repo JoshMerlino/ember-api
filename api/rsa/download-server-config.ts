@@ -19,6 +19,14 @@ export default async function api(req: Request, res: Response) {
 
 	// Check method
 	if ([ "POST" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
+	
+	if (!ip) return rejectRequest(res, 400, "Required field 'ip' is missing.");
+	if (!hostname) return rejectRequest(res, 400, "Required field 'hostname' is missing.");
+	if (!iface) return rejectRequest(res, 400, "Required field 'iface' is missing.");
+	if (!proto) return rejectRequest(res, 400, "Required field 'proto' is missing.");
+	if (!port) return rejectRequest(res, 400, "Required field 'port' is missing.");
+	if (!network) return rejectRequest(res, 400, "Required field 'network' is missing.");
+	if (!subnet) return rejectRequest(res, 400, "Required field 'subnet' is missing.");
 
 	// Get server networking info
 	const location = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${ process.env.IP_GEO_KEY }&ip=${ ip }`)
@@ -37,7 +45,11 @@ export default async function api(req: Request, res: Response) {
 	].join("; ");
 	
 	// Insert server into database
-	await query(`INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ("${ hash }", "${ address }", ${ location.latitude }, ${ location.longitude }, "${ geo }"))`);
+	const resp = await query(`INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ("${ hash }", "${ address }", ${ location.lat }, ${ location.long }, "${ geo }"))`)
+		.catch(() => null);
+	
+	// Check response
+	if (!resp) return rejectRequest(res, 500, "Failed to insert server into database.");
 
 	// Read config & inject data
 	const config = await readFile(resolve("./default/ovpn/server.conf"), "utf8").then(config => config
