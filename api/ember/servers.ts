@@ -14,7 +14,7 @@ export default async function api(req: Request, res: Response): Promise<void | R
 			.split(" ")
 			.map(a => a.trim())[1];
 	
-		const [ code, country, state ] = server.location.split(";");
+		const [ code, country, state ] = server.location.split(";").map(a => a.trim());
 		return {
 			ip,
 			hash: server.uuid,
