@@ -98,8 +98,6 @@ export default async function api(req: Request, res: Response) {
 	// Send the config to the user
 	res.json({
 		success: true,
-		server,
-		user: user.toSafe(),
 		config: Buffer.from(ovpn).toString("base64")
 	});
 

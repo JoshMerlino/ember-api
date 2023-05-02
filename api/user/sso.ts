@@ -91,9 +91,6 @@ export default async function api(req: Request, res: Response) {
 		// Delete token
 		await query(`DELETE FROM sso WHERE ssokey = "${ token }";`);
 
-		// Set email verified flag on user
-		user.setFlag(Auth.Flags.VERIFIED, true);
-
 		// If their just confirming their email
 		if (sso.prevent_authorization) return res.redirect(redirect_uri?.toString() ?? "/");
 

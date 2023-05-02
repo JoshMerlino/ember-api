@@ -1,5 +1,6 @@
 import { Request } from "express";
 
+// Gets the authorization/session_id from the request
 export default function getAuthorization(req: Request): string | undefined {
 	if (req.header("authorization")) return req.header("authorization");
 	if (req.header("session_id")) return req.header("session_id");
