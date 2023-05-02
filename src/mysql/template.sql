@@ -108,9 +108,7 @@ CREATE TABLE `users` (
   `passwd_length` int(10) UNSIGNED NOT NULL,
   `passwd_changed_ms` bigint(20) UNSIGNED NOT NULL,
   `created_ms` bigint(20) NOT NULL,
-  `roles` text DEFAULT NULL,
-  `administrator` int(11) NOT NULL DEFAULT 0,
-  `flags` int(11) NOT NULL DEFAULT 0
+  `customer` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

@@ -1,13 +1,8 @@
 /* eslint @typescript-eslint/no-explicit-any: off */
 import { Request, Response } from "express";
-import { readFile } from "fs/promises";
 import idealPasswd from "ideal-password";
-import { marked } from "marked";
-import path from "path";
 import { v1, v4 } from "uuid";
-import manifest from "../../package.json";
 import { query } from "../../src/mysql";
-import smtp from "../../src/smpt";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
@@ -17,8 +12,8 @@ export const route = "auth/create";
 export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Parse the request
+	// const fullurl = req.protocol + "://" + req.hostname + req.url;
 	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
-	const fullurl = req.protocol + "://" + req.hostname + req.url;
 
 	// Check method
 	if ([ "POST" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
@@ -93,26 +88,26 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${ snowflake() }, "${ sso }", ${ uuid }, ${ expires_after })`);
 
 	// Render message
-	const html = marked((await readFile(path.resolve("./api/user/create.md"), "utf8"))
-		.replace(/%APPNAME%/g, manifest.name)
-		.replace(/%SSOLINK%/g, `${ fullurl }?token=${ sso }&redirect_uri=/verify-email-success`)
-		.replace(/%USERNAME%/g, username));
+	// const html = marked((await readFile(path.resolve("./api/user/create.md"), "utf8"))
+	// 	.replace(/%APPNAME%/g, manifest.name)
+	// 	.replace(/%SSOLINK%/g, `${ fullurl }?token=${ sso }&redirect_uri=/verify-email-success`)
+	// 	.replace(/%USERNAME%/g, username));
 
 	// Send message
-	try {
-		await smtp.sendMail({
-			from: manifest.name,
-			to: [ email ],
-			subject: "Confirm your email address",
-			html
-		});
-	} catch (error) {
+	// try {
+	// 	await smtp.sendMail({
+	// 		from: manifest.name,
+	// 		to: [ email ],
+	// 		subject: "Confirm your email address",
+	// 		html
+	// 	});
+	// } catch (error) {
 
-		// Error sending email
-		console.error(error);
-		return rejectRequest(res, 500, "Failed to send email.");
+	// Error sending email
+	// 	console.error(error);
+	// 	return rejectRequest(res, 500, "Failed to send email.");
 
-	}
+	// }
 
 	// Respond with redirect to generate session
 	if (noredirect) return res.json({ success: true });
