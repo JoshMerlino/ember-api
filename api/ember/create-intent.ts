@@ -29,8 +29,13 @@ export default async function api(req: Request, res: Response) {
 	const user = authorization && await User.fromAuthorization(authorization);
 	if (!authorization || !user) return rejectRequest(res, 401, "You must be an authorized user to create a payment intent.");
 
+	// Get product
+
 	// Create data object
 	const data = {
+		amount: price.unit_amount || 0,
+		currency: price.currency || "usd",
+		receipt_email: user?.email || undefined,
 		payment_method_types: [ "card" ],
 		metadata: {
 			user: user?.id.toString(),
@@ -43,7 +48,7 @@ export default async function api(req: Request, res: Response) {
 	// const idempotencyKey = hash(JSON.stringify(data));
 
 	// Create payment intent
-	const intent = await stripe.setupIntents.create(data /* { idempotencyKey } */);
+	const intent = await stripe.paymentIntents.create(data /* { idempotencyKey } */);
 
 	// Send secret
 	return res.json({
