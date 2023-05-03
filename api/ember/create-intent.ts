@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { publicKey, stripe } from "../../src/stripe";
-import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "ember/create-intent";
@@ -32,18 +31,19 @@ export default async function api(req: Request, res: Response) {
 
 	// Create data object
 	const data = {
-		amount: price.unit_amount || 0,
-		currency: price.currency || "usd",
-		receipt_email: user?.email || undefined,
 		payment_method_types: [ "card" ],
-		metadata: { user: user?.id.toString() }
+		metadata: {
+			user: user?.id.toString(),
+			product: typeof price.product === "string" ? price.product : price.product.id.toString(),
+		},
+		customer: await user.getCustomer().then(a => a.id)
 	};
 
 	// Use idempotency key
-	const idempotencyKey = hash(JSON.stringify(data));
+	// const idempotencyKey = hash(JSON.stringify(data));
 
 	// Create payment intent
-	const intent = await stripe.paymentIntents.create(data, { idempotencyKey });
+	const intent = await stripe.setupIntents.create(data /* { idempotencyKey } */);
 
 	// Send secret
 	return res.json({
