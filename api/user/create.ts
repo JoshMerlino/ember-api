@@ -82,7 +82,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const expires_after = now + 1000 * 60 * 15;
 
 	// Insert into database
-	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, customer) VALUES (${ uuid }, "${ username }", "${ email.toLowerCase() }", "${ md5 }", ${ now }, ${ password.length }, ${ now });`);
+	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, customer) VALUES (${ uuid }, "${ username }", "${ email.toLowerCase() }", "${ md5 }", ${ now }, ${ password.length }, ${ now }, "");`);
 
 	// Insert SSO token to database
 	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${ snowflake() }, "${ sso }", ${ uuid }, ${ expires_after })`);
