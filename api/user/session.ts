@@ -78,7 +78,7 @@ export default async function api(req: Request, res: Response) {
 
 		// Get current session
 		const [ session ] = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE session_id = "${ authorization }";`);
-		if (session === undefined) return rejectRequest(res, 401, "Invalid session ID.");
+		if (session === undefined) return rejectRequest(res, 401);
 
 		// Delete from sessions
 		await query(`DELETE FROM sessions WHERE session_id = "${ authorization }"`);
