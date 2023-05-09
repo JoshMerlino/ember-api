@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Mar 07, 2023 at 04:47 AM
+-- Generation Time: May 09, 2023 at 09:01 PM
 -- Server version: 10.9.4-MariaDB-1:10.9.4+maria~ubu2204
 -- PHP Version: 8.0.25
 
@@ -32,6 +32,21 @@ CREATE TABLE `mfa` (
   `user` bigint(20) UNSIGNED NOT NULL,
   `secret` text NOT NULL,
   `pending` tinyint(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `servers`
+--
+
+CREATE TABLE `servers` (
+  `id` int(11) NOT NULL,
+  `uuid` text NOT NULL,
+  `address` text NOT NULL,
+  `latitude` bigint(20) NOT NULL,
+  `longitude` bigint(20) NOT NULL,
+  `location` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -68,22 +83,6 @@ CREATE TABLE `sso` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `transactions`
---
-
-CREATE TABLE `transactions` (
-  `id` int(11) NOT NULL,
-  `secret` text NOT NULL,
-  `user` bigint(20) NOT NULL,
-  `created_ms` bigint(20) NOT NULL,
-  `product` text NOT NULL,
-  `sessionid` text NOT NULL,
-  `used` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `users`
 --
 
@@ -98,21 +97,6 @@ CREATE TABLE `users` (
   `customer` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
---
--- Table structure for table `servers`
---
-
-CREATE TABLE `servers` (
-  `id` int(11) NOT NULL,
-  `uuid` text NOT NULL,
-  `address` text NOT NULL,
-  `latitude` int(11) NOT NULL,
-  `longitude` int(11) NOT NULL,
-  `location` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 --
 -- Indexes for dumped tables
 --
@@ -122,6 +106,13 @@ CREATE TABLE `servers` (
 --
 ALTER TABLE `mfa`
   ADD UNIQUE KEY `mfa_id_unique` (`id`);
+
+--
+-- Indexes for table `servers`
+--
+ALTER TABLE `servers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uuid` (`uuid`) USING HASH;
 
 --
 -- Indexes for table `sessions`
@@ -136,37 +127,20 @@ ALTER TABLE `sso`
   ADD UNIQUE KEY `sso_id_unique` (`id`);
 
 --
--- Indexes for table `transactions`
---
-ALTER TABLE `transactions`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD UNIQUE KEY `users_id_unique` (`id`);
 
 --
--- Indexes for table `servers`
---
-ALTER TABLE `servers`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uuid` (`uuid`) USING HASH;
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT for table `transactions`
+-- AUTO_INCREMENT for table `servers`
 --
-ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
 ALTER TABLE `servers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

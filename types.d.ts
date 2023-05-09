@@ -45,6 +45,13 @@ declare namespace MySQLData {
 		location: string
 	}
 
+	export interface PendingIntents {
+		id: number;
+		user: number;
+		intent: string;
+		secret: string;
+	}
+
 }
 
 declare type APIResponse = Record<string, unknown>;
