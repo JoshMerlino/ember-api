@@ -37,19 +37,6 @@ CREATE TABLE `mfa` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `roles`
---
-
-CREATE TABLE `roles` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `name` text NOT NULL,
-  `color` int(11) NOT NULL,
-  `flags` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `sessions`
 --
 
@@ -135,12 +122,6 @@ CREATE TABLE `servers` (
 --
 ALTER TABLE `mfa`
   ADD UNIQUE KEY `mfa_id_unique` (`id`);
-
---
--- Indexes for table `roles`
---
-ALTER TABLE `roles`
-  ADD UNIQUE KEY `roles_id_unique` (`id`);
 
 --
 -- Indexes for table `sessions`

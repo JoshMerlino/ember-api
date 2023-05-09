@@ -6,7 +6,6 @@ type ConstructorArgs = {
     mfaRow: MySQLData.MFA;
     sessionRow?: MySQLData.Session;
     sessions: MySQLData.Session[];
-    roles: MySQLData.Role[];
     authorization?: string;
 }
 
@@ -31,8 +30,7 @@ export default class User {
 			const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE id = ${ sessionRow.user };`);
 			const [ mfaRow ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ userRow.id };`);
 			const sessions = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE user = "${ userRow.id }";`);
-			const roles = await query<MySQLData.Role>("SELECT * FROM roles");
-			return new this({ userRow, sessionRow, mfaRow, sessions, roles, authorization }, User.__construct_signature);
+			return new this({ userRow, sessionRow, mfaRow, sessions, authorization }, User.__construct_signature);
 		} catch (e) {
 			console.error(e);
 			return false;
@@ -45,8 +43,7 @@ export default class User {
 			const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE id = ${ id };`);
 			const [ mfaRow ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ userRow.id };`);
 			const sessions = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE user = "${ userRow.id }";`);
-			const roles = await query<MySQLData.Role>("SELECT * FROM roles");
-			return new this({ userRow, mfaRow, sessions, roles }, User.__construct_signature);
+			return new this({ userRow, mfaRow, sessions }, User.__construct_signature);
 		} catch (e) {
 			console.error(e);
 			return false;

@@ -8,8 +8,6 @@ declare namespace MySQLData {
 		passwd_length: number;
 		passwd_changed_ms: number;
 		created_ms: number;
-		roles: string;
-		flags: number;
 	}
 
 	export interface Session {
@@ -37,14 +35,7 @@ declare namespace MySQLData {
 		expires_after: number;
 		prevent_authorization: boolean;
 	}
-
-	export interface Role {
-		id: number;
-		name: string;
-		color: number;
-		flags: number;
-	}
-
+	
 	export interface Server {
 		id: number
 		uuid: string
