@@ -1,54 +1,72 @@
-declare namespace REST {
-	type APIResponse<T = unknown> = T & { success: true } | APIError;
-	type Status = `${ number } ${ string }`;
-	interface APIError {
-		success: false;
-		error: Status;
-		description?: string;
-		readable?: string;
-	}
-}
+declare namespace MySQLData {
 
-declare namespace Auth {
-	interface Meta {
-		id: number;
-		subscription?: string;
-	}
-	interface Session {
-		id: number;
-        session_id: string;
-        created_ms: number;
-        last_used_ms: number;
-        user_agent: string;
-        ip_address: string;
-        current: boolean;
-	}
-	interface User {
+	export interface User {
 		id: number;
 		username: string;
 		email: string;
-		created_ms: number;
-		mfa_enabled: boolean;
 		passwd_md5: string;
 		passwd_length: number;
 		passwd_changed_ms: number;
-		sessions: Session[];
-		meta: Meta
+		created_ms: number;
+		roles: string;
+		flags: number;
 	}
+
+	export interface Session {
+		id: number;
+		session_id: string;
+		user: number;
+		md5: string;
+		created_ms: number;
+		last_used_ms: number;
+		user_agent: string;
+		ip_address: string;
+	}
+
+	export interface MFA {
+		id: number;
+		user: number;
+		secret: string;
+		pending: 0 | 1;
+	}
+
+	export interface SSO {
+		id: number;
+		user: number;
+		ssokey: string;
+		expires_after: number;
+		prevent_authorization: boolean;
+	}
+
+	export interface Role {
+		id: number;
+		name: string;
+		color: number;
+		flags: number;
+	}
+
+	export interface Server {
+		id: number
+		uuid: string
+		address: string
+		latitude: number
+		longitude: number
+		location: string
+	}
+
 }
 
-interface File {
-	name: string;
-	sha: string;
-	arch: string;
-	download_url: string;
+declare type APIResponse = Record<string, unknown>;
+
+declare interface Endpoint {
+	route: string | string[];
+	default(req: Request, res: Response): unknown;
 }
-interface PlatformDownloads {
-	version: string;
-	files: File[];
+
+declare interface Middleware {
+	default(req: Request, res: Response, next: NextFunction): void | Promise<void>;
 }
-declare namespace EmberAPI {
-	interface ClientDownloads {
-		platform: Record<string, PlatformDownloads>;
-	}
+
+declare interface Runtime {
+	default(app: Express): void | Promise<void>;
 }

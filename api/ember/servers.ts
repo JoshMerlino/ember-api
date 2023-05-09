@@ -18,6 +18,6 @@ export default async function api(req: Request, res: Response): Promise<void | R
 			return obj;
 		}, {} as Record<string, Ember.Server>)
 			
-	});
+	} as EmberAPI.Servers);
 
 }

@@ -1,8 +1,8 @@
 import { query } from "../mysql";
 
-export async function getServers() {
+export async function getServers(hash?: string): Promise<Ember.Server[]> {
 
-	const serverRow = await query<MySQLData.Server>("SELECT * FROM servers;");
+	const serverRow = await query<MySQLData.Server>(hash ? `SELECT * FROM servers WHERE hash="${ hash }"` : "SELECT * FROM servers;");
 	if (!serverRow) throw new Error("No servers found");
 
 	// Loop through servers
@@ -22,6 +22,6 @@ export async function getServers() {
 				country,
 				state
 			}
-		};
+		} as Ember.Server;
 	});
 }

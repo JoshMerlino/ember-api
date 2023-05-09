@@ -60,6 +60,6 @@ export default async function api(req: Request, res: Response) {
 		success: true,
 		plans,
 		token: publicKey,
-	});
+	} as EmberAPI.Store);
 
 }
