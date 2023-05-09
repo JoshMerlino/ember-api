@@ -4,6 +4,7 @@ import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
 import User from "../../../src/auth/User";
 import getAuthorization from "../../../src/auth/getAuthorization";
+import { getServers } from "../../../src/ember/getServers";
 import { isAllowed } from "../../../src/ember/isAllowed";
 import rejectRequest from "../../../src/util/rejectRequest";
 
@@ -21,11 +22,11 @@ export default async function api(req: Request, res: Response) {
 	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
 	// Get server from servers
-	const servers: Record<string, Ember.Server> = JSON.parse(await readFile(resolve("./userdata/servers.json"), "utf8"));
-	const server = servers[hash];
+	const servers = await getServers();
+	const server = servers.find(s => s.hash === hash);
 
 	// Make sure the server exists and the user has access
-	if (!servers.hasOwnProperty(hash)) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
+	if (!server) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
 	if (!await isAllowed(server, user)) return rejectRequest(res, 403, `You are not allowed to access server with ID '${ hash }'.`);
 
 	// Initialize connections
