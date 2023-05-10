@@ -36,15 +36,15 @@ export default async function api(req: Request, res: Response) {
 	// Get the users customer id
 	const customer = await user.getCustomer().then(customer => customer.id);
 
-	// Make sure that customer dosnt already have a subscription
-	const subscriptions = await stripe.subscriptions.list({ customer }).then(subscriptions => subscriptions.data.filter(subscription => subscription.status !== "canceled"));
-	if (subscriptions.length > 0) return rejectRequest(res, 400, "You already have a subscription.");
+	// Immediatly cancel all subscriptions and prorate the user
+	const subscriptions = await stripe.subscriptions.list({ customer }).then(subscriptions => subscriptions.data.filter(subscription => subscription.cancel_at_period_end === false));
+	for (const subscription of subscriptions) await stripe.subscriptions.update(subscription.id, { cancel_at_period_end: true });
 	
 	// Get newest payment method
 	const paymentMethods = await stripe.paymentMethods.list({ customer });
 
 	// Create a subscription
-	const subscription = await stripe.subscriptions.create({
+	await stripe.subscriptions.create({
 		customer,
 		items: [ { price: price.id } ],
 		default_payment_method: paymentMethods.data[0].id,
@@ -52,9 +52,6 @@ export default async function api(req: Request, res: Response) {
 	});
 
 	// Return the subscription
-	res.json({
-		success: true,
-		subscription: subscription.id
-	});
+	res.json({ success: true	});
 
 }
