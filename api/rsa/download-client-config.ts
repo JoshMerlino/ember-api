@@ -74,8 +74,10 @@ export default async function api(req: Request, res: Response) {
 	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
 		.replace(/{{ ip }}/g, ip)
 		.replace(/{{ id }}/g, hash)
-		.replace(/{{ port }}/g, `${ port }`)
+		.replace(/{{ port }}/g, port.toString())
 		.replace(/{{ proto }}/g, proto)
+		.replace(/{{ subnet }}/g, "255.255.0.0")
+		.replace(/{{ network }}/g, "10.8.0.0")
 	);
 
 	// Write clientConfig to tmp && upload
