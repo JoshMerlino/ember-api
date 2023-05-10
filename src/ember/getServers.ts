@@ -2,7 +2,7 @@ import { query } from "../mysql";
 
 export async function getServers(hash?: string): Promise<Ember.Server[]> {
 
-	const serverRow = await query<MySQLData.Server>(hash ? `SELECT * FROM servers WHERE hash="${ hash }"` : "SELECT * FROM servers;");
+	const serverRow = await query<MySQLData.Server>(hash ? `SELECT * FROM servers WHERE uuid="${ hash }"` : "SELECT * FROM servers;");
 	if (!serverRow) throw new Error("No servers found");
 
 	// Loop through servers
