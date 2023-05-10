@@ -7,13 +7,14 @@ export async function getServers(hash?: string): Promise<Ember.Server[]> {
 
 	// Loop through servers
 	return serverRow.map(server => {
-		const ip = server.address
+		const [ proto, ip ] = server.address
 			.split(" ")
-			.map(a => a.trim())[1];
+			.map(a => a.trim());
 
 		const [ code, country, state ] = server.location.split(";").map(a => a.trim());
 		return {
 			ip,
+			proto,
 			hash: server.uuid,
 			location: {
 				latitude: server.latitude / 1e10,
