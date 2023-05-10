@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: May 09, 2023 at 09:01 PM
+-- Generation Time: May 09, 2023 at 11:40 PM
 -- Server version: 10.9.4-MariaDB-1:10.9.4+maria~ubu2204
 -- PHP Version: 8.0.25
 
@@ -32,6 +32,19 @@ CREATE TABLE `mfa` (
   `user` bigint(20) UNSIGNED NOT NULL,
   `secret` text NOT NULL,
   `pending` tinyint(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pendingintents`
+--
+
+CREATE TABLE `pendingintents` (
+  `id` int(11) NOT NULL,
+  `user` bigint(20) NOT NULL,
+  `intent` text NOT NULL,
+  `secret` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -108,6 +121,12 @@ ALTER TABLE `mfa`
   ADD UNIQUE KEY `mfa_id_unique` (`id`);
 
 --
+-- Indexes for table `pendingintents`
+--
+ALTER TABLE `pendingintents`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `servers`
 --
 ALTER TABLE `servers`
@@ -135,6 +154,12 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `pendingintents`
+--
+ALTER TABLE `pendingintents`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `servers`
