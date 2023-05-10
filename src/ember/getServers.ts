@@ -7,7 +7,7 @@ export async function getServers(hash?: string): Promise<Ember.Server[]> {
 
 	// Loop through servers
 	return serverRow.map(server => {
-		const [ proto, ip ] = server.address
+		const [ proto, ip, port, network, subnet ] = server.address
 			.split(" ")
 			.map(a => a.trim());
 
@@ -16,6 +16,9 @@ export async function getServers(hash?: string): Promise<Ember.Server[]> {
 			ip,
 			proto,
 			hash: server.uuid,
+			port: parseInt(port),
+			network,
+			subnet,
 			location: {
 				latitude: server.latitude / 1e10,
 				longitude: server.longitude / 1e10,
