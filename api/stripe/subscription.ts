@@ -19,8 +19,8 @@ export default async function api(req: Request, res: Response) {
 	const customer = await user.getCustomer().then(customer => customer.id);
 
 	// Get the users subscription
-	const subscriptions = await stripe.subscriptions.list({ customer })
-		.then(({ data }) => data);
+	const subscriptions = await stripe.subscriptions.list({ customer, expand: [ "data.default_payment_method", "data.plan.product" ]})
+		.then(({ data }) => data as unknown as Ember.Subscription[]);
 	
 	// Get the active subscription
 	const active = subscriptions.find(subscription => subscription.cancel_at_period_end === false);
@@ -33,6 +33,6 @@ export default async function api(req: Request, res: Response) {
 		success: true,
 		active,
 		inactive
-	});
+	} as REST.APIResponse<EmberAPI.Subscription>);
 
 }
