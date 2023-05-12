@@ -12,8 +12,7 @@ export async function isAllowed(server: Ember.Server, user: User): Promise<false
 	
 	// Get the active subscription
 	const active = subscriptions
-		.filter(subscription => subscription.cancellation_details === null)
-		.filter(subscription => subscription.status === "active");
+		.filter(subscription => subscription.cancellation_details === null || subscription.status === "active");
 
 	console.log(active);
 	
