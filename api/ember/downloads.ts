@@ -5,7 +5,7 @@ import rejectRequest from "../../src/util/rejectRequest";
 // Initialize GitHub API client
 const client = new Octokit({ auth: process.env.GITHUB_PAT });
 
-export const route = "ember/download-client";
+export const route = [ "ember/download-client", "v2/ember/downloads" ];
 export default async function api(req: Request, res: Response) {
 
 	// Get the latest release
