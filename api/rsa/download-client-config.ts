@@ -5,7 +5,6 @@ import { resolve } from "path";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { getServers } from "../../src/ember/getServers";
-import { isAllowed } from "../../src/ember/isAllowed";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "v2/rsa/download-client-config";
@@ -21,9 +20,9 @@ export default async function api(req: Request, res: Response) {
 	const hash = body.hash || body.server;
 	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
-	const [ server ] = await getServers(hash);
-	
-	if (!await isAllowed(server, user)) return rejectRequest(res, 403, `You are not allowed to access server with ID '${ hash }'.`);
+	// Get the server
+	const [ server ] = await getServers(hash, user);
+	if (!server) return rejectRequest(res, 403, `You are not allowed to access server with ID '${ hash }'.`);
 	
 	// Initialize connections
 	const ssh = new NodeSSH;

@@ -44,6 +44,8 @@ export async function getServers(hash?: string | null, user?: User): Promise<Emb
 			.filter(subscription => subscription.cancellation_details?.reason === null)
 			.filter(subscription => subscription.status === "active");
 			
+		console.log(active.length);
+		
 		if (active.length === 0) return false;
 
 		// If the user has an active subscription
