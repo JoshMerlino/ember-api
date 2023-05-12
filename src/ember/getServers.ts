@@ -1,12 +1,14 @@
+import User from "../auth/User";
 import { query } from "../mysql";
+import { stripe } from "../stripe";
 
-export async function getServers(hash?: string): Promise<Ember.Server[]> {
+export async function getServers(hash?: string | null, user?: User): Promise<Ember.Server[]> {
 
 	const serverRow = await query<MySQLData.Server>(hash ? `SELECT * FROM servers WHERE uuid="${ hash }"` : "SELECT * FROM servers;");
 	if (!serverRow) throw new Error("No servers found");
 
 	// Loop through servers
-	return serverRow.map(server => {
+	return await Promise.all(serverRow.map(server => {
 		const [ proto, ip, port, network, subnet ] = server.address
 			.split(" ")
 			.map(a => a.trim());
@@ -26,6 +28,26 @@ export async function getServers(hash?: string): Promise<Ember.Server[]> {
 				country,
 				state
 			}
-		} as Ember.Server;
-	});
+		};
+	}).map(async server => {
+		if (!user) return server;
+		
+		// Get the users customer id
+		const customer = await user.getCustomer().then(customer => customer.id);
+
+		// Get the users subscription
+		const subscriptions = await stripe.subscriptions.list({ customer })
+			.then(({ data }) => data);
+			
+		// Get the active subscription
+		const active = subscriptions
+			.filter(subscription => subscription.cancellation_details?.reason === null)
+			.filter(subscription => subscription.status === "active");
+			
+		if (active.length === 0) return false;
+
+		// If the user has an active subscription
+		return server;
+
+	})).then(servers => servers.filter(server => server !== false) as Ember.Server[]);
 }

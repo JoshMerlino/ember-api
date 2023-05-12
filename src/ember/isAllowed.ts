@@ -7,13 +7,16 @@ export async function isAllowed(server: Ember.Server, user: User): Promise<false
 	const customer = await user.getCustomer().then(customer => customer.id);
 
 	// Get the users subscription
-	const subscriptions = await stripe.subscriptions.list({ customer, expand: [ "data.default_payment_method", "data.plan.product" ]})
-		.then(({ data }) => data as unknown as Ember.Subscription[]);
+	const subscriptions = await stripe.subscriptions.list({ customer })
+		.then(({ data }) => data);
 	
 	// Get the active subscription
 	const active = subscriptions
+		.filter(subscription => subscription.cancellation_details === null)
 		.filter(subscription => subscription.status === "active");
 
+	console.log(active);
+	
 	// If the user has an active subscription
 	if (active.length > 0) return server;
 
