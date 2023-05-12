@@ -3,10 +3,9 @@
 	"version": "2.1.48",
 	"private": true,
 	"main": "lib/src",
-	"license": "ISC",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/JoshMerlino/ts-server.git"
+		"url": "https://github.com/EmberVPN/api.git"
 	},
 	"scripts": {
 		"watch-ts": "tsc -w",
