@@ -31,6 +31,7 @@ export default async function api(req: Request, res: Response) {
 	res.json({
 		success: true,
 		version,
+		timestamp: new Date(release.published_at || release.assets[0].created_at).getTime() / 1e3,
 		assets
 	} satisfies REST.APIResponse<EmberAPI.ClientDownloads>);
 
