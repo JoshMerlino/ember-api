@@ -37,6 +37,13 @@ export default async function api(req: Request, res: Response) {
 		// If the user does not own the payment method
 		if (!isAllowed) return rejectRequest(res, 403, "You do not own that payment method.");
 
+		// Make sure the payment method is not the default method for any subscriptions
+		const subscriptions = await stripe.subscriptions.list({ customer })
+			.then(a => a.data.map(a => a.default_payment_method as string));
+		
+		// If the payment method is the default for any subscriptions
+		if (subscriptions.includes(paymentMethod)) return rejectRequest(res, 400, "You cannot delete a payment method that is the default for any subscriptions.");
+
 		// Detach the payment method
 		await stripe.paymentMethods.detach(paymentMethod);
 		
