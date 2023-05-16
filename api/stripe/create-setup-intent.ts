@@ -5,11 +5,11 @@ import { query } from "../../src/mysql";
 import { publicKey, stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
 
-export const route = "stripe/create-setup-intent";
+export const route = [ "stripe/create-setup-intent", "stripe/setup-intent" ];
 export default async function api(req: Request, res: Response) {
 
 	// Check method
-	if ([ "POST" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
+	if ([ "POST", "DELETE" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 	
 	// Make sure user is authenticated
 	const authorization = getAuthorization(req);
@@ -37,6 +37,11 @@ export default async function api(req: Request, res: Response) {
 	
 	// Save intent
 	await query(`DELETE FROM pendingintents WHERE user=${ user.id }`);
+	
+	if (req.method === "DELETE") {
+		return res.json({ success: true });
+	}
+
 	await query(`INSERT INTO pendingintents (user, intent, secret) VALUES (${ user.id }, '${ intent.id }', '${ intent.client_secret }')`);
 	
 	// Return intent
