@@ -7,6 +7,9 @@ import rejectRequest from "../../src/util/rejectRequest";
 export const route = "stripe/subscription";
 export default async function api(req: Request, res: Response) {
 
+	// Get body
+	const body = { ...req.body, ...req.query };
+
 	// Check method
 	if ([ "GET", "POST", "DELETE" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 	
@@ -33,6 +36,24 @@ export default async function api(req: Request, res: Response) {
 
 		// Cancel the subscription
 		await stripe.subscriptions.update(active.id, { cancel_at_period_end: true });
+
+	}
+
+	// If posting, update the payment method
+	if (req.method === "POST") {
+
+		// Make sure the user has an active subscription
+		if (!active) return rejectRequest(res, 400, "You do not have an active subscription.");
+
+		// Get the payment method
+		const paymentMethod = await stripe.paymentMethods.retrieve(body.paymentMethod)
+			.catch(() => null);
+		
+		// Make sure the payment method exists
+		if (!paymentMethod) return rejectRequest(res, 400, "Invalid payment method.");
+
+		// Attach the payment method
+		stripe.subscriptions.update(active.id, { default_payment_method: paymentMethod.id });
 
 	}
 
