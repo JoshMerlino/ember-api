@@ -11,7 +11,7 @@ export default async function api(req: Request, res: Response) {
 	const body = { ...req.body, ...req.query };
 
 	// Check method
-	if ([ "GET", "PATCH" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
+	if ([ "GET", "DELETE" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 	
 	// Make sure user is authenticated
 	const authorization = getAuthorization(req);
