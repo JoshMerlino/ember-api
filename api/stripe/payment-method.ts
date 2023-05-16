@@ -41,11 +41,21 @@ export default async function api(req: Request, res: Response) {
 		const subscriptions = await stripe.subscriptions.list({ customer })
 			.then(a => a.data.map(a => a.default_payment_method as string));
 		
-		// If the payment method is the default for any subscriptions
-		if (subscriptions.includes(paymentMethod)) return rejectRequest(res, 400, "You cannot delete a payment method that is the default for any subscriptions.");
+		// Get subscription that uses the payment method
+		const subscription = subscriptions.find(subscription => subscription === paymentMethod);
+
+		// See if theres more methods to use
+		const methods = await stripe.paymentMethods.list({ customer, type: "card" })
+			.then(a => a.data)
+			.then(methods => methods.map(method => method.id))
+			.then(methods => methods.filter(method => method !== paymentMethod));
+		
+		// If the payment method is the default for a subscription
+		if (methods.length === 0 && subscription) return rejectRequest(res, 400, "You cannot delete your default payment method.");
 
 		// Detach the payment method
 		await stripe.paymentMethods.detach(paymentMethod);
+		if (subscription) await stripe.subscriptions.update(subscription, { default_payment_method: methods[0] });
 		
 	}
 
