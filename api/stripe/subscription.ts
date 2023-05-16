@@ -54,6 +54,7 @@ export default async function api(req: Request, res: Response) {
 
 		// Attach the payment method
 		stripe.subscriptions.update(active.id, { default_payment_method: paymentMethod.id });
+		active.default_payment_method = paymentMethod;
 
 	}
 
