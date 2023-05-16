@@ -37,25 +37,32 @@ export default async function api(req: Request, res: Response) {
 		// If the user does not own the payment method
 		if (!isAllowed) return rejectRequest(res, 403, "You do not own that payment method.");
 
-		// Make sure the payment method is not the default method for any subscriptions
-		const subscriptions = await stripe.subscriptions.list({ customer })
-			.then(a => a.data.map(a => a.default_payment_method as string));
-		
-		// Get subscription that uses the payment method
-		const subscription = subscriptions.find(subscription => subscription === paymentMethod);
-
-		// See if theres more methods to use
+		// Get the users other payment methods
 		const methods = await stripe.paymentMethods.list({ customer, type: "card" })
-			.then(a => a.data)
-			.then(methods => methods.map(method => method.id))
-			.then(methods => methods.filter(method => method !== paymentMethod));
+			.then(a => a.data);
 		
-		// If the payment method is the default for a subscription
-		if (methods.length === 0 && subscription) return rejectRequest(res, 400, "You cannot delete your default payment method.");
+		// Get the users active subscription
+		const subscription = await stripe.subscriptions.list({ customer, expand: [ "data.default_payment_method", "data.plan.product" ]})
+			.then(a => a.data)
+			.then(subscriptions => subscriptions.filter(subscription => subscription.cancel_at_period_end === false))
+			.catch(() => []);
+		
+		// If the payment method is in use
+		const inUse = subscription.find(subscription => typeof subscription.default_payment_method === "string" ? subscription.default_payment_method : subscription.default_payment_method?.id);
 
-		// Detach the payment method
-		await stripe.paymentMethods.detach(paymentMethod);
-		if (subscription) await stripe.subscriptions.update(subscription, { default_payment_method: methods[0] });
+		// If the payment method is in use
+		if (inUse) {
+
+			// See if theres more methods to use
+			if (methods.length === 1) return rejectRequest(res, 400, "You cannot delete your only payment method while you have an ongoing subscription.");
+			
+			// Detach the payment method
+			await stripe.paymentMethods.detach(paymentMethod);
+
+			// Update the subscription
+			await stripe.subscriptions.update(inUse.id, { default_payment_method: methods.find(method => method.id !== paymentMethod)?.id });
+
+		}
 		
 	}
 
