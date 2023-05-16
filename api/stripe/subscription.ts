@@ -58,6 +58,16 @@ export default async function api(req: Request, res: Response) {
 
 	}
 
+	// Get the users payment methods
+	const methods = await stripe.paymentMethods.list({ customer, type: "card" })
+		.then(a => a.data);
+	
+	// If the subscription dosnt have a default method, add the first method
+	if (active && !active.default_payment_method) {
+		await stripe.subscriptions.update(active.id, { default_payment_method: methods[0].id });
+		active.default_payment_method = methods[0];
+	}
+
 	// Get the inactive subscription
 	const inactive = subscriptions.filter(subscription => subscription.id !== active?.id);
 	
