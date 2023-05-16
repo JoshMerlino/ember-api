@@ -4,11 +4,14 @@ import getAuthorization from "../../src/auth/getAuthorization";
 import { stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
 
-export const route = "stripe/payment-method";
+export const route = [ "stripe/payment-method", "stripe/payment-methods" ];
 export default async function api(req: Request, res: Response) {
 
+	// Get body
+	const body = { ...req.body, ...req.query };
+
 	// Check method
-	if ([ "GET" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
+	if ([ "GET", "PATCH" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 	
 	// Make sure user is authenticated
 	const authorization = getAuthorization(req);
@@ -17,11 +20,33 @@ export default async function api(req: Request, res: Response) {
 
 	// Get the users customer id
 	const customer = await user.getCustomer().then(customer => customer.id);
+	
+	// If the user is deleting their payment method
+	if (req.method === "DELETE") {
+
+		// Get the payment method they want to delete
+		const { paymentMethod } = body;
+		if (!paymentMethod) return rejectRequest(res, 400, "You must provide a payment method to delete.");
+
+		// Make sure user owns the payment method
+		const isAllowed = await stripe.paymentMethods.list({ customer, type: "card" })
+			.then(a => a.data)
+			.then(methods => methods.map(method => method.id))
+			.then(methods => methods.includes(paymentMethod));
+		
+		// If the user does not own the payment method
+		if (!isAllowed) return rejectRequest(res, 403, "You do not own that payment method.");
+
+		// Detach the payment method
+		await stripe.paymentMethods.detach(paymentMethod);
+		
+	}
 
 	// Get the users payment methods
 	const methods = await stripe.paymentMethods.list({ customer, type: "card" })
 		.then(a => a.data);
 	
+	// Return the payment methods
 	res.json({
 		success: true,
 		methods
