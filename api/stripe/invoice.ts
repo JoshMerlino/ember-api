@@ -4,7 +4,7 @@ import getAuthorization from "../../src/auth/getAuthorization";
 import { stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
 
-export const route = "stripe/invoice";
+export const route = [ "stripe/invoice", "stripe/invoices" ];
 export default async function api(req: Request, res: Response) {
 
 	// Check method
@@ -17,7 +17,8 @@ export default async function api(req: Request, res: Response) {
 
 	// Get all invoices for the user
 	const customer = await user.getCustomer();
-	const invoices = await stripe.invoices.list({ customer: customer.id, limit: 100 });
+	const invoices = await stripe.invoices.list({ customer: customer.id, limit: 100 })
+		.then(a => a.data);
 
 	res.json({
 		success: true,
