@@ -17,7 +17,12 @@ export default async function api(req: Request, res: Response) {
 
 	// Get all invoices for the user
 	const customer = await user.getCustomer();
-	const invoices = await stripe.invoices.list({ customer: customer.id })
+
+	// Get the subscription
+	const subscription = await stripe.subscriptions.list({ customer: customer.id })
+		.then(a => a.data[0].id);
+
+	const invoices = await stripe.invoices.list({ customer: customer.id, subscription })
 		.then(a => a.data);
 
 	res.json({
