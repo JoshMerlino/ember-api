@@ -22,6 +22,10 @@ export default async function api(req: Request, res: Response) {
 	const subscription = await stripe.subscriptions.list({ customer: customer.id })
 		.then(a => a.data[0].id);
 
+	// If there is no subscription
+	if (!subscription) return rejectRequest(res, 400, "You do not have a subscription.");
+
+	// Get all invoices
 	const invoices = await stripe.invoices.list({ customer: customer.id, subscription })
 		.then(a => a.data);
 
