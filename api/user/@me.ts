@@ -96,12 +96,10 @@ export default async function api(req: Request, res: Response) {
 	// If the method is used to delete the current user
 	if (req.method === "DELETE") {
 
-		await sql.unsafe("BEGIN;");
 		await sql.unsafe(
 			"DELETE FROM mfa WHERE \"user\" = $1; DELETE FROM sessions WHERE \"user\" = $1; DELETE FROM sso WHERE \"user\" = $1; DELETE FROM users WHERE id = $1;",
 			[ user.id ]
 		);
-		await sql.unsafe("COMMIT;");
 
 		// Return the response
 		return res.json({
