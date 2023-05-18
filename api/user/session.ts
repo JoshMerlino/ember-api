@@ -4,7 +4,7 @@ import UAParser from "ua-parser-js";
 import { v1 as uuid } from "uuid";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
-import { query } from "../../src/mysql";
+import { sql } from "../../src/mysql";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
@@ -29,14 +29,22 @@ export default async function api(req: Request, res: Response) {
 		const md5 = hash(password);
 
 		// Select users with the same email address and password
-		const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email }" AND passwd_md5 = "${ md5 }";`);
+		const users = await sql.unsafe<MySQLData.User[]>(
+			"SELECT * FROM users WHERE email = $1 AND passwd_md5 = $2;",
+			[ email, md5 ]
+		);
+
 		if (users.length === 0) return rejectRequest(res, 401, "Incorrect email or password.");
 
 		// Get user from database
 		const [ user ] = users;
 
 		// Validate 2FA
-		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
+		const [ mfa ] = await sql.unsafe<MySQLData.MFA[]>(
+			"SELECT * FROM mfa WHERE \"user\" = $1",
+			[ user.id ]
+		);
+
 		if (mfa !== undefined && mfa.pending === 0) {
 
 			// If no token
@@ -53,7 +61,19 @@ export default async function api(req: Request, res: Response) {
 		const session_id = uuid();
 
 		// Insert into sessions
-		await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${ snowflake() }, "${ session_id }", ${ user.id }, "${ md5 }", ${ now }, ${ now }, "${ req.header("User-Agent") }", "${ req.ip }");`);
+		await sql.unsafe(
+			"INSERT INTO sessions (id, session_id, \"user\", md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);",
+			[
+				snowflake(),
+				session_id,
+				user.id,
+				md5,
+				now,
+				now,
+				req.header("User-Agent") || "",
+				req.ip
+			]
+		);
 
 		// Set session
 		res.cookie("session_id", session_id, { maxAge: 1000 * 60 * 60 * 24 * (body.hasOwnProperty("rememberme") ? 3650 : 7) });
@@ -65,7 +85,7 @@ export default async function api(req: Request, res: Response) {
 			session_id
 		});
 
-		return res.redirect(307, "./@me");
+		return res.redirect(307, "/v2/auth/@me");
 
 	}
 
@@ -77,12 +97,23 @@ export default async function api(req: Request, res: Response) {
 		if (!authorization) return rejectRequest(res, 406, "Required field 'authorization' is missing.");
 
 		// Get current session
-		const [ session ] = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE session_id = "${ authorization }";`);
+		const [ session ] = await sql.unsafe<MySQLData.Session[]>(
+			"SELECT * FROM sessions WHERE session_id = $1;",
+			[ authorization ]
+		);
 		if (session === undefined) return rejectRequest(res, 401);
 
 		// Delete from sessions
-		await query(`DELETE FROM sessions WHERE session_id = "${ authorization }"`);
-		if ("all" in body) await query(`DELETE FROM sessions WHERE user = ${ session.user }`);
+		await sql.unsafe(
+			"DELETE FROM sessions WHERE session_id = $1",
+			[ authorization ]
+		);
+		if ("all" in body) {
+			await sql.unsafe(
+				"DELETE FROM sessions WHERE \"user\" = $1",
+				[ session.user ]
+			);
+		}
 
 		// Delete cookie
 		if (authorization === getAuthorization(req)) res.cookie("session_id", "", { maxAge: 0 });
@@ -100,14 +131,16 @@ export default async function api(req: Request, res: Response) {
 		if (!authorization || !user) return rejectRequest(res, 401);
 
 		// Get sessions
-		let sessions = await query(`SELECT * FROM sessions WHERE user = ${ user.id }`);
-		sessions = sessions.map(session => {
+		const sessions = await sql.unsafe(
+			"SELECT * FROM sessions WHERE \"user\" = $1",
+			[ user.id ]
+		).then(a => a.map(session => {
 			session.current_session = session.session_id === authorization;
 			delete session.md5;
 			delete session.user;
 			session.user_agent = new UAParser(session.user_agent as string).getResult();
 			return session;
-		});
+		}));
 
 		// Respond with sessions
 		return res.json({

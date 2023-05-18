@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import idealPasswd from "ideal-password";
 import User from "../../../src/auth/User";
 import getAuthorization from "../../../src/auth/getAuthorization";
-import { query } from "../../../src/mysql";
+import { sql } from "../../../src/mysql";
 import hash from "../../../src/util/hash";
 import rejectRequest from "../../../src/util/rejectRequest";
 import { emailAddress } from "../../../src/util/validate";
@@ -30,7 +30,8 @@ export default async function api(req: Request, res: Response) {
 		// If change username
 		if (username) {
 			user.username = username;
-			await query(`UPDATE users SET username = "${ username }" WHERE id = ${ user.id }`);
+			await sql.unsafe("UPDATE users SET username = $1 WHERE id = $2", [ username, user.id ]);
+
 		}
 
 		// If change email
@@ -40,12 +41,12 @@ export default async function api(req: Request, res: Response) {
 			if (!emailAddress(email)) return rejectRequest(res, 406, `Email address '${ email }' is not a valid email address.`);
 
 			// Check if email is already in use
-			const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email.toLowerCase() }";`);
+			const users = await sql.unsafe<Array<MySQLData.User>>("SELECT * FROM users WHERE email = $1", [ email.toLowerCase() ]);
 			if (users.filter(({ id }) => id !== user.id).length !== 0) return rejectRequest(res, 406, `Email address '${ email }' is already in use.`);
 
 			// Update email
 			user.email = email;
-			await query(`UPDATE users SET email = "${ email }" WHERE id = ${ user.id }`);
+			await sql.unsafe("UPDATE users SET email = $1 WHERE id = $2", [ email, user.id ]);
 
 		}
 
@@ -67,7 +68,7 @@ export default async function api(req: Request, res: Response) {
 			user.passwd_md5 = md5;
 			user.passwd_length = password.length;
 			user.passwd_changed_ms = Date.now();
-			await query(`UPDATE users SET passwd_md5 = "${ md5 }", passwd_length = ${ password.length }, passwd_changed_ms = ${ user.passwd_changed_ms } WHERE id = ${ user.id }`);
+			await sql.unsafe("UPDATE users SET passwd_md5 = $1, passwd_length = $2, passwd_changed_ms = $3 WHERE id = $4", [ md5, password.length, user.passwd_changed_ms, user.id ]);
 
 		}
 
@@ -77,10 +78,12 @@ export default async function api(req: Request, res: Response) {
 	if (req.method === "DELETE") {
 
 		// TODO: Safer delete user
-		await query(`DELETE FROM mfa WHERE user = '${ user.id }';`);
-		await query(`DELETE FROM sessions WHERE user = '${ user.id }';`);
-		await query(`DELETE FROM sso WHERE user = '${ user.id }';`);
-		await query(`DELETE FROM users WHERE id = '${ user.id }';`);
+		await sql.unsafe(`
+	DELETE FROM mfa WHERE user = $1;
+	DELETE FROM sessions WHERE user = $1;
+	DELETE FROM sso WHERE user = $1;
+	DELETE FROM users WHERE id = $1;
+`, [ user.id ]);
 
 		// Return the response
 		return res.json({

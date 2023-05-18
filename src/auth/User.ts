@@ -1,4 +1,4 @@
-import { query } from "../mysql";
+import { sql } from "../mysql";
 import { stripe } from "../stripe";
 
 type ConstructorArgs = {
@@ -26,10 +26,10 @@ export default class User {
 	// Get the user by the session ID
 	static async fromAuthorization(authorization: string): Promise<User | false> {
 		try {
-			const [ sessionRow ] = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE session_id = "${ authorization }";`);
-			const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE id = ${ sessionRow.user };`);
-			const [ mfaRow ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ userRow.id };`);
-			const sessions = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE user = "${ userRow.id }";`);
+			const [ sessionRow ] = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE session_id = $1", [ authorization ]);
+			const [ userRow ] = await sql.unsafe<MySQLData.User[]>("SELECT * FROM users WHERE id = $1", [ sessionRow.user ]);
+			const [ mfaRow ] = await sql.unsafe<MySQLData.MFA[]>("SELECT * FROM mfa WHERE user = $1", [ userRow.id ]);
+			const sessions = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE user = $1", [ userRow.id ]);
 			return new this({ userRow, sessionRow, mfaRow, sessions, authorization }, User.__construct_signature);
 		} catch (e) {
 			console.error(e);
@@ -40,9 +40,16 @@ export default class User {
 	// Get the user by the user ID
 	static async fromID(id: number): Promise<User | false> {
 		try {
-			const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE id = ${ id };`);
-			const [ mfaRow ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ userRow.id };`);
-			const sessions = await query<MySQLData.Session>(`SELECT * FROM sessions WHERE user = "${ userRow.id }";`);
+			await sql.unsafe("");
+
+			await sql.unsafe("BEGIN;");
+			const result = await sql.unsafe("SELECT * FROM users WHERE id = $1; SELECT * FROM mfa WHERE \"user\" = (SELECT id FROM users WHERE id = $1); SELECT * FROM sessions WHERE \"user\" = (SELECT id FROM users WHERE id = $1); COMMIT;", [ id ]);
+			await sql.unsafe("COMMIT;");
+
+			const userRow: MySQLData.User = result[0][0];
+			const mfaRow: MySQLData.MFA = result[1][0];
+			const sessions: MySQLData.Session[] = result[2] as MySQLData.Session[];
+
 			return new this({ userRow, mfaRow, sessions }, User.__construct_signature);
 		} catch (e) {
 			console.error(e);
@@ -56,7 +63,7 @@ export default class User {
 		if (__construct_signature !== User.__construct_signature) throw new Error("ConstructSignature Error");
 
 		// Mark down that the user was initialized and logged in
-		if (sessionRow) query<MySQLData.Session>(`UPDATE sessions SET last_used_ms = ${ Date.now() } WHERE session_id = "${ sessionRow.session_id }";`);
+		if (sessionRow) sql.unsafe("UPDATE sessions SET last_used_ms = $1 WHERE session_id = $2", [ Date.now(), sessionRow.session_id ]);
 
 		this.id = userRow.id;
 		this.username = userRow.username;
@@ -75,11 +82,15 @@ export default class User {
 	public async getCustomer() {
 		
 		// Get current customer id
-		const [ { customer: id } ] = await query<{ customer: string }>(`SELECT customer FROM users WHERE id = ${ this.id };`);
+		const [ { customer: id } ] = await sql.unsafe<{ customer: string}[]>(
+			"SELECT customer FROM users WHERE id = $1",
+			[ this.id ]
+		);
 
 		// Get the customer from Stripe
 		return await stripe.customers.retrieve(id)
-			.catch(async() => {
+			.catch(async e => {
+				
 				const customer = await stripe.customers.create({
 					name: this.username,
 					email: this.email,
@@ -87,7 +98,7 @@ export default class User {
 				});
 
 				// Update the user's customer ID
-				await query(`UPDATE users SET customer = "${ customer.id }" WHERE id = ${ this.id };`);
+				await sql.unsafe("UPDATE users SET customer = $1 WHERE id = $2", [ customer.id, this.id ]);
 				return customer;
 			});
 

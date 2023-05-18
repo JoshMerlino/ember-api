@@ -1,10 +1,10 @@
 import User from "../auth/User";
-import { query } from "../mysql";
+import { sql } from "../mysql";
 import { isAllowed } from "./isAllowed";
 
 export async function getServers(hash?: string | null, user?: User): Promise<Ember.Server[]> {
 
-	const serverRow = await query<MySQLData.Server>(hash ? `SELECT * FROM servers WHERE uuid="${ hash }"` : "SELECT * FROM servers;");
+	const serverRow = await sql.unsafe<MySQLData.Server[]>(hash ? "SELECT * FROM servers WHERE uuid = $1" : "SELECT * FROM servers;", hash ? [ hash ] : undefined);
 	if (!serverRow) throw new Error("No servers found");
 
 	// Loop through servers

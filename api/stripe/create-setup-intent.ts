@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
-import { query } from "../../src/mysql";
+import { sql } from "../../src/mysql";
 import { publicKey, stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
 
@@ -20,7 +20,7 @@ export default async function api(req: Request, res: Response) {
 	if (!user) return rejectRequest(res, 401, "You must be logged in to do that.");
 
 	// Search for existing setup intent
-	const [ si ] = await query<MySQLData.PendingIntents>(`SELECT * FROM pendingintents WHERE user=${ user.id }`);
+	const [ si ] = await sql.unsafe<Array<MySQLData.PendingIntents>>("SELECT * FROM pendingintents WHERE user=$1", [ user.id ]);
 	if (si && !body.fresh) return res.json({
 		success: true,
 		intent: si.intent,
@@ -39,9 +39,9 @@ export default async function api(req: Request, res: Response) {
 	});
 	
 	// Save intent
-	await query(`DELETE FROM pendingintents WHERE user=${ user.id }`);
-	await query(`INSERT INTO pendingintents (user, intent, secret) VALUES (${ user.id }, '${ intent.id }', '${ intent.client_secret }')`);
-	
+	await sql.unsafe("DELETE FROM pendingintents WHERE user=$1", [ user.id ]);
+	await sql.unsafe("INSERT INTO pendingintents (user, intent, secret) VALUES ($1, $2, $3)", [ user.id, intent.id, intent.client_secret ]);
+
 	// Return intent
 	res.json({
 		success: true,
