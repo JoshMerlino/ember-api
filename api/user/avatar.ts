@@ -2,8 +2,7 @@ import { Request, Response } from "express";
 import { readdir } from "fs/promises";
 import mime from "mime-types";
 import path from "path";
-import { ReadableStream } from "stream/web";
-import { Filelike, Web3File } from "web3.storage";
+import { File, Web3File } from "web3.storage";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
 import { sql } from "../../src/mysql";
@@ -40,8 +39,9 @@ export default async function api(req: Request, res: Response) {
 			const file = _file as Web3File & { _name: string };
 			if (!file || !file._name) return rejectRequest(res, 500, `Failed to get avatar for user '${ id }'.`);
 			
-			// Send headers
-			return res.redirect(`https://bafybeicxq24u6ramqmlfuvp524jfm74rfr34hskdifho25nmp7ndyyrtte.ipfs.w3s.link/${ file._name }`);
+			res.redirect(`https://${ user.avatar }.ipfs.w3s.link/${ file._name }`);
+		
+			return;
   
 		}
 
@@ -81,18 +81,19 @@ export default async function api(req: Request, res: Response) {
 			if (Buffer.byteLength(file) > 2 ** 20 * 5) return rejectRequest(res, 413, "Uploaded file exceeds limit of 5 mb.");
 			
 			// Convert buffer to filelike
-			const filelike: Filelike = {
-				name: `${ user.id }/default.${ ext }`,
-				stream: () => new ReadableStream({
-					start(controller) {
-						controller.enqueue(file);
-						controller.close();
-					}
-				})
-			};
+			// const filelike: Filelike = {
+			// 	name: `${ user.id }/default.${ ext }`,
+			// 	stream: () => new ReadableStream({
+			// 		start(controller) {
+			// 			controller.enqueue(file);
+			// 			controller.close();
+			// 		}
+			// 	})
+			// };
 
 			// Upload the file
-			const cid = await storage.put([ filelike ]);
+			const asFile = new File([ file ], `${ user.id }/default.${ ext }`, { type: TYPE });
+			const cid = await storage.put([ asFile ]);
 			
 			// Save the cid
 			await sql.unsafe("UPDATE users SET avatar = $1 WHERE id = $2;", [ cid, user.id ]);
