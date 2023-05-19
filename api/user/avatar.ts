@@ -40,7 +40,6 @@ export default async function api(req: Request, res: Response) {
 			if (!file || !file._name) return rejectRequest(res, 500, `Failed to get avatar for user '${ id }'.`);
 			
 			res.redirect(`https://${ user.avatar }.ipfs.w3s.link/${ file._name }`);
-		
 			return;
   
 		}
