@@ -138,6 +138,8 @@ export default async function api(req: Request, res: Response) {
 			session.current_session = session.session_id === authorization;
 			delete session.md5;
 			delete session.user;
+			session.created_ms = parseInt(session.created_ms);
+			session.last_used_ms = parseInt(session.last_used_ms);
 			session.user_agent = new UAParser(session.user_agent as string).getResult();
 			return session;
 		}));
