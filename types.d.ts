@@ -8,6 +8,8 @@ declare namespace MySQLData {
 		passwd_length: number;
 		passwd_changed_ms: number;
 		created_ms: number;
+		customer: string;
+		avatar: string;
 	}
 
 	export interface Session {

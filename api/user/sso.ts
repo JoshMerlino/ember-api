@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid";
 import manifest from "../../package.json";
 import User from "../../src/auth/User";
 import { sql } from "../../src/mysql";
-import smtp from "../../src/smpt";
+import smtp from "../../src/smtp";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
 import { emailAddress } from "../../src/util/validate";

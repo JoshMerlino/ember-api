@@ -22,6 +22,7 @@ export default class User {
 	public passwd_length: number;
 	public passwd_changed_ms: number;
 	public authorization: string | null;
+	public avatar: string | null;
 
 	// Get the user by the session ID
 	static async fromAuthorization(authorization: string): Promise<User | false> {
@@ -68,6 +69,7 @@ export default class User {
 		this.passwd_length = userRow.passwd_length;
 		this.authorization = authorization || null;
 		this.sessions = sessions.map(session => <Auth.Session><unknown>{ ...session, current: sessionRow && session.session_id === sessionRow.session_id });
+		this.avatar = userRow.avatar;
 
 	}
 	
