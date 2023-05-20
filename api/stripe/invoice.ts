@@ -26,7 +26,7 @@ export default async function api(req: Request, res: Response) {
 	if (!subscription) return rejectRequest(res, 400, "You do not have a subscription.");
 
 	// Get all invoices
-	const invoices = await stripe.invoices.list({ customer: customer.id, subscription })
+	const invoices = await stripe.invoices.list({ customer: customer.id, subscription, expand: [ "data.charge" ]})
 		.then(a => a.data);
 
 	res.json({
