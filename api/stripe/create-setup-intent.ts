@@ -21,7 +21,7 @@ export default async function api(req: Request, res: Response) {
 	if (!user) return rejectRequest(res, 401, "You must be logged in to do that.");
 
 	// Search for existing setup intent
-	const [ si ] = await sql.unsafe<Array<MySQLData.PendingIntents>>("SELECT * FROM pendingintents WHERE user = $1", [ user.id ]);
+	const [ si ] = await sql.unsafe<Array<MySQLData.PendingIntents>>("SELECT * FROM pendingintents WHERE \"user\" = $1", [ user.id ]);
 	if (si && !body.fresh) return res.json({
 		success: true,
 		intent: si.intent,

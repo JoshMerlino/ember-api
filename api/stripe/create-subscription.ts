@@ -31,7 +31,7 @@ export default async function api(req: Request, res: Response) {
 	if (price.type !== "recurring") return rejectRequest(res, 400, "Invalid price id.");
 
 	// Delete the users pending intent
-	await sql.unsafe("DELETE FROM pendingintents WHERE user = $1", [ user.id ]);
+	await sql.unsafe("DELETE FROM pendingintents WHERE \"user\" = $1", [ user.id ]);
 
 	// Get the users customer id
 	const customer = await user.getCustomer().then(customer => customer.id);

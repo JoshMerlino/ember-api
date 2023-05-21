@@ -29,8 +29,9 @@ export default class User {
 		try {
 			const [ sessionRow ] = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE session_id = $1", [ authorization ]);
 			const [ userRow ] = await sql.unsafe<MySQLData.User[]>("SELECT * FROM users WHERE id = $1", [ sessionRow.user ]);
-			const [ mfaRow ] = await sql.unsafe<MySQLData.MFA[]>("SELECT * FROM mfa WHERE user = $1", [ userRow.id ]);
-			const sessions = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE user = $1", [ userRow.id ]);
+			const [ mfaRow ] = await sql.unsafe<MySQLData.MFA[]>("SELECT * FROM mfa WHERE \"user\" = $1", [ userRow.id ]);
+			const sessions = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE \"user\" = $1", [ userRow.id ]);
+			console.log(sessions);
 			return new this({ userRow, sessionRow, mfaRow, sessions, authorization }, User.__construct_signature);
 		} catch (e) {
 			console.error(e);
@@ -42,8 +43,8 @@ export default class User {
 	static async fromID(id: number): Promise<User | false> {
 		try {
 			const [ userRow ] = await sql.unsafe<MySQLData.User[]>("SELECT * FROM users WHERE id = $1;", [ id ]);
-			const [ mfaRow ] = await sql.unsafe<MySQLData.MFA[]>("SELECT * FROM mfa WHERE user = $1;", [ userRow.id ]);
-			const sessions = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE user = $1;", [ userRow.id ]);
+			const [ mfaRow ] = await sql.unsafe<MySQLData.MFA[]>("SELECT * FROM mfa WHERE \"user\" = $1;", [ userRow.id ]);
+			const sessions = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE \"user\" = $1;", [ userRow.id ]);
 			return new this({ userRow, mfaRow, sessions }, User.__construct_signature);
 		} catch (e) {
 			console.error(e);

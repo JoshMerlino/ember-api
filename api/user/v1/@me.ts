@@ -79,9 +79,9 @@ export default async function api(req: Request, res: Response) {
 
 		// TODO: Safer delete user
 		await sql.unsafe(`
-	DELETE FROM mfa WHERE user = $1;
-	DELETE FROM sessions WHERE user = $1;
-	DELETE FROM sso WHERE user = $1;
+	DELETE FROM mfa WHERE \"user\" = $1;
+	DELETE FROM sessions WHERE \"user\" = $1;
+	DELETE FROM sso WHERE \"user\" = $1;
 	DELETE FROM users WHERE id = $1;
 `, [ user.id ]);
 

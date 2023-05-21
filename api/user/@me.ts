@@ -114,7 +114,7 @@ export default async function api(req: Request, res: Response) {
 		success: true,
 		user: {
 			...user,
-			avatar_url: req.url.replace(/@me$/g, `avatar/${ user.id }`),
+			avatar_url: req.url.replace(/@me$/g, `avatar/${ user.id }`)
 		},
 		customer
 	});
