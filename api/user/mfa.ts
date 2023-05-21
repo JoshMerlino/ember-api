@@ -67,7 +67,7 @@ export default async function api(req: Request, res: Response) {
 		if (mfa === undefined) return rejectRequest(res, 417, "You have not set up multifactor authentication yet.");
 
 		// Ensure Fields are there
-		if (token) return rejectRequest(res, 400, "Required field 'token' is missing.");
+		if (!token) return rejectRequest(res, 400, "Required field 'token' is missing.");
 
 		// Check token
 		const verify = verifyToken(mfa.secret, token);
