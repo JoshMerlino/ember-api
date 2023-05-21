@@ -46,7 +46,7 @@ export default async function api(req: Request, res: Response) {
 		// Check to make sure user dosnt already have 2factor
 		const [ mfa ] = await sql.unsafe<Array<MySQLData.MFA>>("SELECT * FROM mfa WHERE \"user\" = $1", [ user.id ]);
 
-		if (mfa === undefined || mfa.pending === 1) return rejectRequest(res, 406, "This account does not have multifactor authentication enabled.");
+		if (mfa === undefined || mfa.pending) return rejectRequest(res, 406, "This account does not have multifactor authentication enabled.");
 
 		// Remove 2fa
 		await sql.unsafe("DELETE FROM mfa WHERE \"user\" = $1", [ user.id ]);
@@ -61,7 +61,7 @@ export default async function api(req: Request, res: Response) {
 
 		// Check to make sure user dosnt already have 2factor
 		const [ mfa ] = await sql.unsafe<Array<MySQLData.MFA>>("SELECT * FROM mfa WHERE \"user\" = $1", [ user.id ]);
-		if (mfa !== undefined && mfa.pending === 0) return rejectRequest(res, 406, "This account already has multifactor authentication enabled.");
+		if (mfa !== undefined && !mfa.pending) return rejectRequest(res, 406, "This account already has multifactor authentication enabled.");
 
 		// If not set up
 		if (mfa === undefined) return rejectRequest(res, 417, "You have not set up multifactor authentication yet.");
@@ -74,7 +74,7 @@ export default async function api(req: Request, res: Response) {
 
 		// If token is correct
 		if (verify?.delta === 0) {
-			await sql.unsafe("UPDATE mfa SET pending = 0 WHERE \"user\" = $1", [ user.id ]);
+			await sql.unsafe("UPDATE mfa SET pending = false WHERE \"user\" = $1", [ user.id ]);
 			return res.json({ success: true });
 		}
 
