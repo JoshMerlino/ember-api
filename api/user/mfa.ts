@@ -30,7 +30,7 @@ export default async function api(req: Request, res: Response) {
 
 		// Generate new secret
 		const { secret, qr } = generateSecret({ name: "Ember VPN", account: user.email });
-		await sql.unsafe("INSERT INTO mfa (id, \"user\", secret, pending) VALUES ($1, $2, $3, 1)", [ snowflake(), user.id, secret ]);
+		await sql.unsafe("INSERT INTO mfa (id, \"user\", secret, pending) VALUES ($1, $2, $3, true)", [ snowflake(), user.id, secret ]);
 
 		// Send link to QR code
 		return res.json({
