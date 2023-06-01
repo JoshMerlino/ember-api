@@ -85,6 +85,7 @@ export default class User {
 
 		// Get the customer from Stripe
 		const cus = await stripe.customers.retrieve(id)
+			.catch(()=> stripe.customers.list({ email: this.email }).then(customers => customers.data[0]))
 			.catch(() => null);
 		
 		if (!cus) {
