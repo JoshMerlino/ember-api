@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import idealPasswd from "ideal-password";
 import { v1, v4 } from "uuid";
-import { query } from "../../src/mysql";
+import { sql } from "../../src/mysql";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
@@ -31,7 +31,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const md5 = hash(password);
 
 	// Select users with the same email address
-	const users = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email.toLowerCase() }";`);
+	const users = await sql.unsafe<MySQLData.User[]>("SELECT * FROM users WHERE email = $1;", [ email.toLowerCase() ]);
 
 	// Check if user exists & get that user
 	if (users.filter(user => user.email === email).length !== 0) {
@@ -48,7 +48,16 @@ export default async function api(req: Request, res: Response): Promise<any> {
 				const now = Date.now();
 
 				// Insert into sessions
-				await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${ snowflake() }, "${ session_id }", ${ user.id }, "${ md5 }", ${ now }, ${ now }, "${ req.header("User-Agent") }", "${ req.ip }");`);
+				await sql.unsafe(
+					"INSERT INTO sessions (id, session_id, \"user\", md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $5, $6, $7);", [
+						snowflake(),
+						session_id,
+						user.id,
+						md5,
+						now,
+						req.header("User-Agent") || "",
+						req.ip
+					]);
 
 				// Respond with session id
 				return res.json({
@@ -82,10 +91,16 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const expires_after = now + 1000 * 60 * 15;
 
 	// Insert into database
-	await query(`INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, customer) VALUES (${ uuid }, "${ username }", "${ email.toLowerCase() }", "${ md5 }", ${ now }, ${ password.length }, ${ now }, "");`);
+	await sql.unsafe(
+		"INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, customer) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);",
+		[ uuid, username, email.toLowerCase(), md5, now, password.length, now, "" ]
+	);
 
 	// Insert SSO token to database
-	await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${ snowflake() }, "${ sso }", ${ uuid }, ${ expires_after })`);
+	await sql.unsafe(
+		"INSERT INTO sso (id, ssokey, \"user\", expires_after) VALUES ($1, $2, $3, $4);",
+		[ snowflake(), sso, uuid, expires_after ]
+	);
 
 	// Render message
 	// const html = marked((await readFile(path.resolve("./api/user/create.md"), "utf8"))

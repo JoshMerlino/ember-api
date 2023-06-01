@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { generateSecret, verifyToken } from "node-2fa";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
-import { query } from "../../src/mysql";
+import { sql } from "../../src/mysql";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
 
@@ -21,15 +21,16 @@ export default async function api(req: Request, res: Response) {
 	if (req.method === "POST") {
 
 		// Check to make sure user dosnt already have 2factor
-		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
+		const [ mfa ] = await sql.unsafe("SELECT * FROM mfa WHERE \"user\" = $1", [ user.id ]);
+
 		if (mfa !== undefined && mfa.pending === 0) return rejectRequest(res, 406, "This account already has multifactor authentication enabled.");
 
 		// Delete old MFA token
-		if (mfa !== undefined) await query<MySQLData.MFA>(`DELETE FROM mfa WHERE user = ${ user.id }`);
+		if (mfa !== undefined) await sql.unsafe("DELETE FROM mfa WHERE \"user\" = $1", [ user.id ]);
 
 		// Generate new secret
 		const { secret, qr } = generateSecret({ name: "Ember VPN", account: user.email });
-		await query(`INSERT INTO mfa (id, user, secret, pending) VALUES (${ snowflake() }, ${ user.id }, "${ secret }", 1)`);
+		await sql.unsafe("INSERT INTO mfa (id, \"user\", secret, pending) VALUES ($1, $2, $3, true)", [ snowflake(), user.id, secret ]);
 
 		// Send link to QR code
 		return res.json({
@@ -43,11 +44,12 @@ export default async function api(req: Request, res: Response) {
 	if (req.method === "DELETE") {
 
 		// Check to make sure user dosnt already have 2factor
-		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
-		if (mfa === undefined || mfa.pending === 1) return rejectRequest(res, 406, "This account does not have multifactor authentication enabled.");
+		const [ mfa ] = await sql.unsafe<Array<MySQLData.MFA>>("SELECT * FROM mfa WHERE \"user\" = $1", [ user.id ]);
+
+		if (mfa === undefined || mfa.pending) return rejectRequest(res, 406, "This account does not have multifactor authentication enabled.");
 
 		// Remove 2fa
-		await query<MySQLData.MFA>(`DELETE FROM mfa WHERE user = ${ user.id }`);
+		await sql.unsafe("DELETE FROM mfa WHERE \"user\" = $1", [ user.id ]);
 
 		// Send link to QR code
 		return res.json({ success: true });
@@ -58,21 +60,21 @@ export default async function api(req: Request, res: Response) {
 	if (req.method === "PATCH") {
 
 		// Check to make sure user dosnt already have 2factor
-		const [ mfa ] = await query<MySQLData.MFA>(`SELECT * FROM mfa WHERE user = ${ user.id }`);
-		if (mfa !== undefined && mfa.pending === 0) return rejectRequest(res, 406, "This account already has multifactor authentication enabled.");
+		const [ mfa ] = await sql.unsafe<Array<MySQLData.MFA>>("SELECT * FROM mfa WHERE \"user\" = $1", [ user.id ]);
+		if (mfa !== undefined && !mfa.pending) return rejectRequest(res, 406, "This account already has multifactor authentication enabled.");
 
 		// If not set up
 		if (mfa === undefined) return rejectRequest(res, 417, "You have not set up multifactor authentication yet.");
 
 		// Ensure Fields are there
-		if (token) return rejectRequest(res, 400, "Required field 'token' is missing.");
+		if (!token) return rejectRequest(res, 400, "Required field 'token' is missing.");
 
 		// Check token
 		const verify = verifyToken(mfa.secret, token);
 
 		// If token is correct
 		if (verify?.delta === 0) {
-			await query<MySQLData.MFA>(`UPDATE mfa SET pending = 0 WHERE user = ${ user.id }`);
+			await sql.unsafe("UPDATE mfa SET pending = false WHERE \"user\" = $1", [ user.id ]);
 			return res.json({ success: true });
 		}
 

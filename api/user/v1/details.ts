@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../../../src/auth/User";
-import { query } from "../../../src/mysql";
+import { sql } from "../../../src/mysql";
 import rejectRequest from "../../../src/util/rejectRequest";
 import { emailAddress } from "../../../src/util/validate";
 
@@ -18,7 +18,7 @@ export default async function api(req: Request, res: Response) {
 	if (!emailAddress(email)) return rejectRequest(res, 406, `Email address '${ email }' is not a valid email address.`);
 
 	// Lookup user by email
-	const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email?.toLowerCase() }"`);
+	const [ userRow ] = await sql.unsafe<MySQLData.User[]>("SELECT * FROM users WHERE email = $1", [ email?.toLowerCase() ]);
 	if (userRow === undefined) return rejectRequest(res, 404, `User with email '${ email }' does not exist.`);
 
 	// Get user from id

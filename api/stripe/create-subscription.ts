@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../../src/auth/User";
 import getAuthorization from "../../src/auth/getAuthorization";
-import { query } from "../../src/mysql";
+import { sql } from "../../src/mysql";
 import { stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
 
@@ -31,8 +31,8 @@ export default async function api(req: Request, res: Response) {
 	if (price.type !== "recurring") return rejectRequest(res, 400, "Invalid price id.");
 
 	// Delete the users pending intent
-	await query(`DELETE FROM pendingintents WHERE user = ${ user.id }`);
-	
+	await sql.unsafe("DELETE FROM pendingintents WHERE \"user\" = $1", [ user.id ]);
+
 	// Get the users customer id
 	const customer = await user.getCustomer().then(customer => customer.id);
 

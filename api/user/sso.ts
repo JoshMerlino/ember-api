@@ -5,8 +5,8 @@ import path from "path";
 import { v4 as uuid } from "uuid";
 import manifest from "../../package.json";
 import User from "../../src/auth/User";
-import { query } from "../../src/mysql";
-import smtp from "../../src/smpt";
+import { sql } from "../../src/mysql";
+import smtp from "../../src/smtp";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
 import { emailAddress } from "../../src/util/validate";
@@ -19,7 +19,7 @@ export default async function api(req: Request, res: Response) {
 	const fullurl = req.protocol + "://" + req.hostname + req.url;
 
 	// Delete all expired sso tokens
-	await query(`DELETE FROM sso WHERE expires_after < ${ Date.now() };`);
+	await sql.unsafe("DELETE FROM sso WHERE expires_after < $1", [ Date.now() ]);
 
 	// If POST, create a new token
 	if (req.method === "POST") {
@@ -32,7 +32,7 @@ export default async function api(req: Request, res: Response) {
 		if (!emailAddress(email)) return rejectRequest(res, 406, `Email '${ email.toLowerCase() }' is not a valid email address.`);
 
 		// Lookup user by email
-		const [ userRow ] = await query<MySQLData.User>(`SELECT * FROM users WHERE email = "${ email?.toLowerCase() }"`);
+		const [ userRow ] = await sql.unsafe<Array<MySQLData.User>>("SELECT * FROM users WHERE email = $1", [ email?.toLowerCase() ]);
 		if (userRow === undefined) return rejectRequest(res, 404, `User with email '${ email }' does not exist.`);
 
 		// Get user from id
@@ -44,7 +44,7 @@ export default async function api(req: Request, res: Response) {
 		const expires_after = Date.now() + 1000 * 60 * 15;
 
 		// Insert SSO token to database
-		await query(`INSERT INTO sso (id, ssokey, user, expires_after) VALUES (${ snowflake() }, "${ sso }", ${ user.id }, ${ expires_after })`);
+		await sql.unsafe("INSERT INTO sso (id, ssokey, user, expires_after) VALUES ($1, $2, $3, $4)", [ snowflake(), sso, user.id, expires_after ]);
 
 		// Render message
 		const html = marked((await readFile(path.resolve("./api/user/sso.md"), "utf8"))
@@ -79,8 +79,11 @@ export default async function api(req: Request, res: Response) {
 		// Get token and redirect
 		const { token, redirect_uri } = body;
 
+		// Ensure fields are there
+		if (!token) return rejectRequest(res, 406, "Required field 'token' is missing.");
+
 		// Locate token
-		const [ sso ] = await query<MySQLData.SSO>(`SELECT * FROM sso WHERE ssokey = "${ token }";`);
+		const [ sso ] = await sql.unsafe<Array<MySQLData.SSO>>("SELECT * FROM sso WHERE ssokey = $1", [ token ]);
 
 		// If no token found
 		if (sso === undefined) return rejectRequest(res, 404, "SSO token not found.");
@@ -89,7 +92,7 @@ export default async function api(req: Request, res: Response) {
 		if (!user) return rejectRequest(res, 500, "Failed to get user from id.");
 
 		// Delete token
-		await query(`DELETE FROM sso WHERE ssokey = "${ token }";`);
+		await sql.unsafe("DELETE FROM sso WHERE ssokey = $1", [ token ]);
 
 		// If their just confirming their email
 		if (sso.prevent_authorization) return res.redirect(redirect_uri?.toString() ?? "/");
@@ -99,8 +102,8 @@ export default async function api(req: Request, res: Response) {
 		const session_id = uuid();
 
 		// Insert into sessions
-		await query(`INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES (${ snowflake() }, "${ session_id }", ${ user.id }, "${ user.passwd_md5 }", ${ now }, ${ now }, "${ req.header("User-Agent") }", "${ req.ip }");`);
-
+		await sql.unsafe("INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [ snowflake(), session_id, user.id, user.passwd_md5, now, now, req.header("User-Agent") || "", req.ip ]);
+		
 		// Set cookie
 		res.cookie("session_id", session_id, { maxAge: 1000 * 60 * 60 * 24 * 3650 });
 		res.header("authorization", session_id);

@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { readFile } from "fs/promises";
 import fetch from "node-fetch";
 import { resolve } from "path";
-import { query } from "../../src/mysql";
+import { sql } from "../../src/mysql";
 import rejectRequest from "../../src/util/rejectRequest";
 
 export const route = "rsa/download-server-config";
@@ -52,9 +52,9 @@ export default async function api(req: Request, res: Response) {
 	
 	// Insert server into database
 	// If server exists
-	const [ serverRow ] = await query(`SELECT * FROM servers WHERE uuid = "${ hash }"`);
-	if (!serverRow) await query(`INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ("${ hash }", "${ address }", ${ location.latitude * 1e10 }, ${ location.longitude * 1e10 }, "${ geo }");`);
-	else await query(`UPDATE servers SET address = "${ address }", latitude = ${ location.latitude * 1e10 }, longitude = ${ location.longitude * 1e10 }, location = "${ geo }" WHERE uuid = "${ hash }";`);
+	const [ serverRow ] = await sql.unsafe<Array<any>>("SELECT * FROM servers WHERE uuid = $1", [ hash ]);
+	if (!serverRow) await sql.unsafe("INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ($1, $2, $3, $4, $5)", [ hash, address, location.latitude * 1e10, location.longitude * 1e10, geo ]);
+	else await sql.unsafe("UPDATE servers SET address = $1, latitude = $2, longitude = $3, location = $4 WHERE uuid = $5", [ address, location.latitude * 1e10, location.longitude * 1e10, geo, hash ]);
 
 	// Read config & inject data
 	const config = await readFile(resolve("./default/ovpn/server.conf"), "utf8").then(config => config
