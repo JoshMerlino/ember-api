@@ -42,7 +42,7 @@ export default async function api(req: Request, res: Response) {
 		name: asset.name,
 		downloadUrl: asset.browser_download_url,
 		size: asset.size,
-		downloadCount,
+		downloadCount: asset.download_count,
 		lastModified: new Date(asset.updated_at || asset.created_at).getTime() / 1e3,
 		platform: asset.name.split(`${ version }_`)[1].split(".")[0]
 	} satisfies Ember.Asset));
@@ -51,6 +51,7 @@ export default async function api(req: Request, res: Response) {
 	res.json({
 		success: true,
 		version,
+		downloadCount,
 		timestamp: new Date(release.published_at || release.assets[0].created_at).getTime() / 1e3,
 		assets,
 		openvpn: await getOpenvpn()
