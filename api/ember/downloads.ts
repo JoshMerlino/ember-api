@@ -34,10 +34,7 @@ export default async function api(req: Request, res: Response) {
 	// Get the version number
 	const version = release.name;
 	if (!version) return rejectRequest(res, 500, "No version number found");
-
-	// Get total download count
-	const downloadCount = release.assets.reduce((a, b) => a + b.download_count, 0);
-
+	
 	const assets = release.assets.map(asset => ({
 		name: asset.name,
 		downloadUrl: asset.browser_download_url,
@@ -46,6 +43,9 @@ export default async function api(req: Request, res: Response) {
 		lastModified: new Date(asset.updated_at || asset.created_at).getTime() / 1e3,
 		platform: asset.name.split(`${ version }_`)[1].split(".")[0]
 	} satisfies Ember.Asset));
+	
+	// Get total download count
+	const downloadCount = assets.reduce((a, b) => a + b.downloadCount, 0);
 
 	// Return the latest version for each platform
 	res.json({
