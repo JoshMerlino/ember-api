@@ -26,10 +26,16 @@ export const route = [ "ember/download-client", "v2/ember/downloads" ];
 export default async function api(req: Request, res: Response) {
 
 	// Get the latest release
-	const { data: release } = await client.repos.getLatestRelease({
-		owner: "EmberVPN",
-		repo: "client",
-	});
+	const [ { data: release }, { data: all } ] = await Promise.all([
+		client.repos.getLatestRelease({
+			owner: "EmberVPN",
+			repo: "client",
+		}),
+		client.repos.listReleases({
+			owner: "EmberVPN",
+			repo: "client"
+		})
+	]);
 
 	// Get the version number
 	const version = release.name;
@@ -43,9 +49,8 @@ export default async function api(req: Request, res: Response) {
 		lastModified: new Date(asset.updated_at || asset.created_at).getTime() / 1e3,
 		platform: asset.name.split(`${ version }_`)[1].split(".")[0]
 	} satisfies Ember.Asset));
-	
-	// Get total download count
-	const downloadCount = assets.reduce((a, b) => a + b.downloadCount, 0);
+
+	const downloadCount = all.reduce((acc, release) => acc + release.assets.reduce((acc, asset) => acc + asset.download_count, 0), 0);
 
 	// Return the latest version for each platform
 	res.json({
