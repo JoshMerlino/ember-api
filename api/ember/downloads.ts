@@ -5,6 +5,23 @@ import rejectRequest from "../../src/util/rejectRequest";
 // Initialize GitHub API client
 const client = new Octokit({ auth: process.env.GITHUB_PAT });
 
+import cheerio from "cheerio";
+import fetch from "node-fetch";
+
+let ovpnversion: string | undefined;
+
+async function getOpenvpn() {
+	if (ovpnversion) return ovpnversion;
+
+	// Fetch the page
+	const data = await fetch("https://openvpn.net/community-downloads/")
+		.then(res => res.text());
+	
+	// Parse the page
+	const $ = cheerio.load(data);
+	return ovpnversion = "v" + $("#heading-36753").text().trim().split("--").map(s => s.trim())[0].split(" ")[1];
+}
+
 export const route = [ "ember/download-client", "v2/ember/downloads" ];
 export default async function api(req: Request, res: Response) {
 
@@ -32,7 +49,8 @@ export default async function api(req: Request, res: Response) {
 		success: true,
 		version,
 		timestamp: new Date(release.published_at || release.assets[0].created_at).getTime() / 1e3,
-		assets
+		assets,
+		openvpn: await getOpenvpn()
 	} satisfies REST.APIResponse<EmberAPI.ClientDownloads>);
 
 }
