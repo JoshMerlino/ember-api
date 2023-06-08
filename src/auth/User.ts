@@ -64,7 +64,7 @@ export default class User {
 		this.username = userRow.username;
 		this.created_ms = parseInt(userRow.created_ms || "0");
 		this.email = userRow.email;
-		this.mfa_enabled = mfaRow !== undefined && mfaRow.pending === 0;
+		this.mfa_enabled = mfaRow !== undefined && !mfaRow.pending;
 		this.passwd_changed_ms = parseInt(userRow.passwd_changed_ms || "0");
 		this.passwd_md5 = userRow.passwd_md5;
 		this.passwd_length = userRow.passwd_length;

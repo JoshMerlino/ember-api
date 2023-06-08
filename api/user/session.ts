@@ -45,10 +45,10 @@ export default async function api(req: Request, res: Response) {
 			[ user.id ]
 		);
 
-		if (mfa !== undefined && mfa.pending === 0) {
+		if (mfa !== undefined && !mfa.pending) {
 
 			// If no token
-			if (token === undefined || token.length === 0) return rejectRequest(res, 406, "Required field 'token' is missing.");
+			if (token === undefined || token.length === 0) return rejectRequest(res, 417, "Required field 'token' is missing.");
 
 			// Verify token
 			const verify = verifyToken(mfa.secret, token);
