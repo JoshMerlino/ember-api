@@ -110,6 +110,9 @@ async function fetcher() {
 	const [ latest ] = embervpn;
 	cache.latest = latest.name || latest.tag_name;
 
+	// Reset the assets
+	Object.keys(cache.assets).forEach(platform => cache.assets[platform] = []);
+
 	// Get assets
 	latest.assets.map(asset => ({
 		name: asset.name,
@@ -119,7 +122,6 @@ async function fetcher() {
 		lastModified: new Date(asset.updated_at || asset.created_at).getTime() / 1e3,
 		platform: asset.name.split(`${ cache.latest }_`)[1].split(".")[0]
 	} satisfies Ember.Asset)).forEach(asset => {
-		if (!cache.assets[asset.platform]) cache.assets[asset.platform] = [];
 		cache.assets[asset.platform].push(asset);
 	});
 
