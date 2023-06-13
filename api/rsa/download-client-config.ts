@@ -73,7 +73,7 @@ export default async function api(req: Request, res: Response) {
 	// Send the updated client config base to the VPN server
 	const { ip, proto, port } = server;
 	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
-		.replace(/{{ ip }}/g, ip)
+		.replace(/{{ ip }}/g, Object.keys(body).includes("localhost") ? "localhost" : ip)
 		.replace(/{{ id }}/g, hash)
 		.replace(/{{ port }}/g, `${ port }`)
 		.replace(/{{ proto }}/g, proto)
