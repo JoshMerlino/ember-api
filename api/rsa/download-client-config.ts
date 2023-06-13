@@ -21,6 +21,9 @@ export default async function api(req: Request, res: Response) {
 	const hash = body.hash || body.server;
 	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
+	// Get if the user wants to use localhost
+	const useLocalHost = (body.ed25519?.length || 0) > 0;
+
 	// Get the server
 	const [ server ] = await getServers(hash);
 	if (!server) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
@@ -73,7 +76,7 @@ export default async function api(req: Request, res: Response) {
 	// Send the updated client config base to the VPN server
 	const { ip, proto, port } = server;
 	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
-		.replace(/{{ ip }}/g, Object.keys(body).includes("localhost") ? "localhost" : ip)
+		.replace(/{{ ip }}/g, useLocalHost ? "localhost" : ip)
 		.replace(/{{ id }}/g, hash)
 		.replace(/{{ port }}/g, `${ port }`)
 		.replace(/{{ proto }}/g, proto)
@@ -88,6 +91,39 @@ export default async function api(req: Request, res: Response) {
 	// Make & download the config
 	await vpn.execCommand(`./make_config.sh ${ user.id }`, { cwd: "/root/client-configs" });
 	const { stdout: ovpn } = await vpn.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" });
+	
+	// If were using localhost
+	if (useLocalHost && body.ed25519) {
+
+		// Get the authorized keys file from the vpn
+		const authorizedKeys = await vpn.execCommand("cat ~/.ssh/authorized_keys", { cwd: "/home/vpn" })
+			.then(({ stdout }) => stdout.split("\n"))
+			.then(lines => lines.map(function(line) {
+				const [ type, key, comment ] = line.split(" ");
+				return { type, key, comment };
+			}))
+			.then(keys => keys.filter(({ comment }) => comment !== `u@${ user.id }`));
+		
+		// Add the ed25519 key to the authorized keys
+		authorizedKeys.push({
+			type: "ssh-ed25519",
+			key: body.ed25519,
+			comment: `u@${ user.id }`
+		});
+		
+		console.log(authorizedKeys);
+
+		// Write the authorized keys file
+		const authorizedKeysFile = authorizedKeys.map(({ type, key, comment }) => `${ type } ${ key } ${ comment }`).join("\n");
+		await writeFile(`/tmp/authorized_keys-${ server.hash }`, authorizedKeysFile);
+		await vpn.putFile(`/tmp/authorized_keys-${ server.hash }`, "/tmp/authorized_keys");
+		
+		// Move to the vpn's directory and give it the correct permissions
+		await vpn.execCommand("mv /tmp/authorized_keys .ssh/authorized_keys", { cwd: "/home/vpn" });
+		await vpn.execCommand("chmod 600 .ssh/authorized_keys", { cwd: "/home/vpn" });
+		await vpn.execCommand("chown vpn:vpn .ssh/authorized_keys", { cwd: "/home/vpn" });
+
+	}
 
 	// Send the config to the user
 	res.json({
