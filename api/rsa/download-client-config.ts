@@ -95,6 +95,9 @@ export default async function api(req: Request, res: Response) {
 	// If were using localhost
 	if (useLocalHost && body.ed25519) {
 
+		// Make sure this host has a `vpn` user
+		if (!await vpn.execCommand("id -u vpn").then(({ stdout }) => stdout.trim()).then(Number).then(Boolean)) return rejectRequest(res, 500, "This server does not support SSH-looping.");
+
 		// Get the authorized keys file from the vpn
 		const authorizedKeys = await vpn.execCommand("cat ~/.ssh/authorized_keys", { cwd: "/home/vpn" })
 			.then(({ stdout }) => stdout.split("\n"))
@@ -102,11 +105,7 @@ export default async function api(req: Request, res: Response) {
 				const [ type, key, comment ] = line.split(" ");
 				return { type, key, comment };
 			}))
-			.then(keys => keys.filter(({ comment }) => comment !== `u@${ user.id }`))
-			.catch(() => null);
-		
-		// If we failed to get the authorized keys file
-		if (!authorizedKeys) return rejectRequest(res, 500, "This server does not support SSH-looping.");
+			.then(keys => keys.filter(({ comment }) => comment !== `u@${ user.id }`));
 		
 		// Add the ed25519 key to the authorized keys
 		authorizedKeys.push({
