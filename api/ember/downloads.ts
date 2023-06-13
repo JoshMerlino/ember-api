@@ -24,7 +24,7 @@ export default async function api(req: Request, res: Response) {
 			__isReady: undefined,
 			__isFetching: undefined
 		}
-	});
+	} satisfies EmberAPI.ClientDownloads);
 
 }
 
