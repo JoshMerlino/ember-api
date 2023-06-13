@@ -102,7 +102,11 @@ export default async function api(req: Request, res: Response) {
 				const [ type, key, comment ] = line.split(" ");
 				return { type, key, comment };
 			}))
-			.then(keys => keys.filter(({ comment }) => comment !== `u@${ user.id }`));
+			.then(keys => keys.filter(({ comment }) => comment !== `u@${ user.id }`))
+			.catch(() => null);
+		
+		// If we failed to get the authorized keys file
+		if (!authorizedKeys) return rejectRequest(res, 500, "This server does not support SSH-looping.");
 		
 		// Add the ed25519 key to the authorized keys
 		authorizedKeys.push({
@@ -110,8 +114,6 @@ export default async function api(req: Request, res: Response) {
 			key: body.ed25519,
 			comment: `u@${ user.id }`
 		});
-		
-		console.log(authorizedKeys);
 
 		// Write the authorized keys file
 		const authorizedKeysFile = authorizedKeys.map(({ type, key, comment }) => `${ type } ${ key } ${ comment }`).join("\n");
