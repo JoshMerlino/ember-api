@@ -90,7 +90,7 @@ export default class User {
 
 			// Make sure a customer with that email doesn't already exist
 			const { data: [ existing ] } = await stripe.customers.list({ email: this.email });
-			if (existing) return existing.id;
+			if (existing) return existing;
 			
 			// Create a new customer
 			const customer = await stripe.customers.create({
