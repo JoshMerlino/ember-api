@@ -31,7 +31,6 @@ export default class User {
 			const [ userRow ] = await sql.unsafe<MySQLData.User[]>("SELECT * FROM users WHERE id = $1", [ sessionRow.user ]);
 			const [ mfaRow ] = await sql.unsafe<MySQLData.MFA[]>("SELECT * FROM mfa WHERE \"user\" = $1", [ userRow.id ]);
 			const sessions = await sql.unsafe<MySQLData.Session[]>("SELECT * FROM sessions WHERE \"user\" = $1", [ userRow.id ]);
-			console.log(sessions);
 			return new this({ userRow, sessionRow, mfaRow, sessions, authorization }, User.__construct_signature);
 		} catch (e) {
 			console.error(e);
@@ -85,11 +84,15 @@ export default class User {
 
 		// Get the customer from Stripe
 		const cus = await stripe.customers.retrieve(id)
-			.catch(()=> stripe.customers.list({ email: this.email }).then(customers => customers.data[0]))
 			.catch(() => null);
 		
 		if (!cus) {
+
+			// Make sure a customer with that email doesn't already exist
+			const { data: [ existing ] } = await stripe.customers.list({ email: this.email });
+			if (existing) return existing.id;
 			
+			// Create a new customer
 			const customer = await stripe.customers.create({
 				name: this.username,
 				email: this.email,
