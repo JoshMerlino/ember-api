@@ -1,6 +1,6 @@
 {
 	"name": "ember-api",
-	"version": "2.2.14",
+	"version": "2.2.15",
 	"private": true,
 	"main": "lib/src",
 	"repository": {
