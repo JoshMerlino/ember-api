@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { Request, Response } from "express";
 import { readFile, writeFile } from "fs/promises";
 import { NodeSSH } from "node-ssh";
@@ -113,16 +114,19 @@ export default async function api(req: Request, res: Response) {
 			key: body.ed25519,
 			comment: `u@${ user.id }`
 		});
-
+		
+		const td = randomBytes(16).toString("hex");
+		
 		// Write the authorized keys file
 		const authorizedKeysFile = authorizedKeys.map(({ type, key, comment }) => `${ type } ${ key } ${ comment }`).join("\n");
-		await writeFile(`/tmp/authorized_keys-${ server.hash }`, authorizedKeysFile);
-		await vpn.putFile(`/tmp/authorized_keys-${ server.hash }`, "/tmp/authorized_keys");
+		await writeFile(`/tmp/authorized_keys-${ td }`, authorizedKeysFile);
+		await vpn.putFile(`/tmp/authorized_keys-${ td }`, "/tmp/authorized_keys");
 		
 		// Move to the vpn's directory and give it the correct permissions
 		await vpn.execCommand("mv /tmp/authorized_keys .ssh/authorized_keys", { cwd: "/home/vpn" });
+		await vpn.execCommand("chmod 700 .ssh", { cwd: "/home/vpn" });
 		await vpn.execCommand("chmod 600 .ssh/authorized_keys", { cwd: "/home/vpn" });
-		await vpn.execCommand("chown vpn:vpn .ssh/authorized_keys", { cwd: "/home/vpn" });
+		await vpn.execCommand("chown vpn:vpn .ssh -R", { cwd: "/home/vpn" });
 
 	}
 
