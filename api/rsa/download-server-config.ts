@@ -53,8 +53,8 @@ export default async function api(req: Request, res: Response) {
 	// Insert server into database
 	// If server exists
 	const [ serverRow ] = await sql.unsafe<Array<any>>("SELECT * FROM servers WHERE uuid = $1", [ hash ]);
-	if (!serverRow) await sql.unsafe("INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ($1, $2, $3, $4, $5)", [ hash, address, location.latitude * 1e10, location.longitude * 1e10, geo ]);
-	else await sql.unsafe("UPDATE servers SET address = $1, latitude = $2, longitude = $3, location = $4 WHERE uuid = $5", [ address, location.latitude * 1e10, location.longitude * 1e10, geo, hash ]);
+	if (!serverRow) await sql.unsafe("INSERT INTO servers (uuid, address, latitude, longitude, location) VALUES ($1, $2, $3, $4, $5)", [ hash, address, Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo ]);
+	else await sql.unsafe("UPDATE servers SET address = $1, latitude = $2, longitude = $3, location = $4 WHERE uuid = $5", [ address, Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, hash ]);
 
 	// Read config & inject data
 	const config = await readFile(resolve("./default/ovpn/server.conf"), "utf8").then(config => config
