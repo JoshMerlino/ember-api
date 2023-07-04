@@ -8,7 +8,6 @@ import User from "../../src/auth/User";
 import { sql } from "../../src/mysql";
 import { resend } from "../../src/resend";
 import rejectRequest from "../../src/util/rejectRequest";
-import snowflake from "../../src/util/snowflake";
 import { emailAddress } from "../../src/util/validate";
 
 export const route = "auth/sso";
@@ -30,7 +29,7 @@ export default async function api(req: Request, res: Response) {
 		// Ensure Fields are there
 		if (!email) return rejectRequest(res, 406, "Required field 'email' is missing.");
 		if (!emailAddress(email)) return rejectRequest(res, 406, `Email '${ email.toLowerCase() }' is not a valid email address.`);
-
+		
 		// Lookup user by email
 		const [ userRow ] = await sql.unsafe<Array<MySQLData.User>>("SELECT * FROM users WHERE email = $1", [ email?.toLowerCase() ]);
 		if (userRow === undefined) return rejectRequest(res, 404, `User with email '${ email }' does not exist.`);
@@ -44,7 +43,7 @@ export default async function api(req: Request, res: Response) {
 		const expires_after = Date.now() + 1000 * 60 * 15;
 
 		// Insert SSO token to database
-		await sql.unsafe("INSERT INTO sso (id, ssokey, user, expires_after) VALUES ($1, $2, $3, $4)", [ snowflake(), sso, user.id, expires_after ]);
+		await sql.unsafe("INSERT INTO sso (ssokey, user, expires_after) VALUES ($1, $2, $3)", [ sso, user.id, expires_after ]);
 
 		// Render message
 		const html = marked((await readFile(path.resolve("./api/user/sso.md"), "utf8"))
@@ -102,7 +101,7 @@ export default async function api(req: Request, res: Response) {
 		const session_id = uuid();
 
 		// Insert into sessions
-		await sql.unsafe("INSERT INTO sessions (id, session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [ snowflake(), session_id, user.id, user.passwd_md5, now, now, req.header("User-Agent") || "", req.ip ]);
+		await sql.unsafe("INSERT INTO sessions (session_id, user, md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7)", [ session_id, user.id, user.passwd_md5, now, now, req.header("User-Agent") || "", req.ip ]);
 		
 		// Set cookie
 		res.cookie("session_id", session_id, { maxAge: 1000 * 60 * 60 * 24 * 3650 });

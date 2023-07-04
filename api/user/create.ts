@@ -53,8 +53,7 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 				// Insert into sessions
 				await sql.unsafe(
-					"INSERT INTO sessions (id, session_id, \"user\", md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $5, $6, $7);", [
-						snowflake(),
+					"INSERT INTO sessions (session_id, \"user\", md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $5, $6);", [
 						session_id,
 						user.id,
 						md5,
@@ -96,14 +95,14 @@ export default async function api(req: Request, res: Response): Promise<any> {
 
 	// Insert into database
 	await sql.unsafe(
-		"INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms, customer) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);",
-		[ uuid, username, email.toLowerCase(), md5, now, password.length, now, "" ]
+		"INSERT INTO users (id, username, email, passwd_md5, created_ms, passwd_length, passwd_changed_ms) VALUES ($1, $2, $3, $4, $5, $6, $7);",
+		[ uuid, username, email.toLowerCase(), md5, now, password.length, now ]
 	);
 
 	// Insert SSO token to database
 	await sql.unsafe(
-		"INSERT INTO sso (id, ssokey, \"user\", expires_after) VALUES ($1, $2, $3, $4);",
-		[ snowflake(), sso, uuid, expires_after ]
+		"INSERT INTO sso (ssokey, \"user\", expires_after) VALUES ($1, $2, $3);",
+		[ sso, uuid, expires_after ]
 	);
 
 	// Render message

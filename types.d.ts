@@ -13,7 +13,6 @@ declare namespace MySQLData {
 	}
 
 	export interface Session {
-		id: number;
 		session_id: string;
 		user: number;
 		md5: string;
@@ -24,14 +23,12 @@ declare namespace MySQLData {
 	}
 
 	export interface MFA {
-		id: number;
 		user: number;
 		secret: string;
-		pending: 0 | 1;
+		pending: boolean;
 	}
 
 	export interface SSO {
-		id: number;
 		user: number;
 		ssokey: string;
 		expires_after: number;
@@ -39,7 +36,6 @@ declare namespace MySQLData {
 	}
 	
 	export interface Server {
-		id: number
 		uuid: string
 		latitude: number
 		longitude: number
@@ -51,7 +47,6 @@ declare namespace MySQLData {
 	}
 
 	export interface PendingIntents {
-		id: number;
 		user: number;
 		intent: string;
 		secret: string;

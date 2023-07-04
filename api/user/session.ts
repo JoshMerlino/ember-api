@@ -7,7 +7,6 @@ import getAuthorization from "../../src/auth/getAuthorization";
 import { sql } from "../../src/mysql";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
-import snowflake from "../../src/util/snowflake";
 
 export const route = "auth/session";
 export default async function api(req: Request, res: Response) {
@@ -62,9 +61,8 @@ export default async function api(req: Request, res: Response) {
 
 		// Insert into sessions
 		await sql.unsafe(
-			"INSERT INTO sessions (id, session_id, \"user\", md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);",
+			"INSERT INTO sessions (session_id, \"user\", md5, created_ms, last_used_ms, user_agent, ip_address) VALUES ($1, $2, $3, $4, $5, $6, $7);",
 			[
-				snowflake(),
 				session_id,
 				user.id,
 				md5,

@@ -4,7 +4,6 @@ import getAuthorization from "../../src/auth/getAuthorization";
 import { sql } from "../../src/mysql";
 import { publicKey, stripe } from "../../src/stripe";
 import rejectRequest from "../../src/util/rejectRequest";
-import snowflake from "../../src/util/snowflake";
 
 export const route = [ "stripe/create-setup-intent", "stripe/setup-intent" ];
 export default async function api(req: Request, res: Response) {
@@ -40,8 +39,8 @@ export default async function api(req: Request, res: Response) {
 	});
 	
 	// Save intent
-	await sql.unsafe("DELETE FROM pendingintents WHERE user=$1", [ user.id ]);
-	await sql.unsafe("INSERT INTO pendingintents (id, \"user\", intent, secret) VALUES ($1, $2, $3, $4)", [ snowflake(), user.id, intent.id, intent.client_secret ]);
+	await sql.unsafe("DELETE FROM pendingintents WHERE user = $1;", [ user.id ]);
+	await sql.unsafe("INSERT INTO pendingintents (\"user\", intent, secret) VALUES ($1, $2, $3);", [ user.id, intent.id, intent.client_secret ]);
 
 	// Return intent
 	res.json({
