@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid";
 import manifest from "../../package.json";
 import User from "../../src/auth/User";
 import { sql } from "../../src/mysql";
-import smtp from "../../src/smtp";
+import { resend } from "../../src/resend";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
 import { emailAddress } from "../../src/util/validate";
@@ -54,9 +54,9 @@ export default async function api(req: Request, res: Response) {
 
 		// Send message
 		try {
-			await smtp.sendMail({
-				from: manifest.name,
-				to: [ user.email ],
+			await resend.emails.send({
+				from: "noreply@embervpn.org",
+				to: user.email,
 				subject: "Single-sign on link",
 				html
 			});
