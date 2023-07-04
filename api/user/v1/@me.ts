@@ -78,12 +78,7 @@ export default async function api(req: Request, res: Response) {
 	if (req.method === "DELETE") {
 
 		// TODO: Safer delete user
-		await sql.unsafe(`
-	DELETE FROM mfa WHERE \"user\" = $1;
-	DELETE FROM sessions WHERE \"user\" = $1;
-	DELETE FROM sso WHERE \"user\" = $1;
-	DELETE FROM users WHERE id = $1;
-`, [ user.id ]);
+		await sql.unsafe("DELETE FROM mfa WHERE \"user\" = $1; DELETE FROM sessions WHERE \"user\" = $1; DELETE FROM sso WHERE \"user\" = $1; DELETE FROM users WHERE id = $1", [ user.id ]);
 
 		// Return the response
 		return res.json({
