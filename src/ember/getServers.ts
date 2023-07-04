@@ -9,18 +9,15 @@ export async function getServers(hash?: string | null, user?: User): Promise<Emb
 
 	// Loop through servers
 	return await Promise.all(serverRow.map(server => {
-		const [ proto, ip, port, network, subnet ] = server.address
-			.split(" ")
-			.map(a => a.trim());
 
 		const [ code, country, state ] = server.location.split(";").map(a => a.trim());
 		return {
-			ip,
-			proto,
+			ip: server.ipv4,
+			proto: server.proto,
 			hash: server.uuid,
-			port: parseInt(port),
-			network,
-			subnet,
+			port: server.port,
+			network: server.internal.split("/")[0],
+			subnet: server.internal.split("/")[1],
 			location: {
 				latitude: server.latitude / 1e10,
 				longitude: server.longitude / 1e10,

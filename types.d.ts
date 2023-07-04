@@ -41,10 +41,13 @@ declare namespace MySQLData {
 	export interface Server {
 		id: number
 		uuid: string
-		address: string
 		latitude: number
 		longitude: number
 		location: string
+		ipv4: string
+		port: number
+		proto: string
+		internal: string
 	}
 
 	export interface PendingIntents {
