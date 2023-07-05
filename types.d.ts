@@ -42,7 +42,7 @@ declare namespace MySQLData {
 		location: string
 		ipv4: string
 		port: number
-		proto: string
+		protocol: string
 		internal: string
 	}
 
