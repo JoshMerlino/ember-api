@@ -91,8 +91,7 @@ export default async function api(req: Request, res: Response) {
 			.replace(/{{ ip }}/g, useLocalHost ? "localhost" : ip)
 			.replace(/{{ id }}/g, hash)
 			.replace(/{{ port }}/g, `${ port }`)
-			.replace(/{{ proto }}/g, proto)
-		);
+			.replace(/{{ proto }}/g, proto));
 	
 	// If were using localhost
 	if (useLocalHost && body.ed25519) {
@@ -136,5 +135,9 @@ export default async function api(req: Request, res: Response) {
 		success: true,
 		config: Buffer.from(ovpn).toString("base64")
 	});
+
+	// Clean up
+	ssh.dispose();
+	vpn.dispose();
 
 }
