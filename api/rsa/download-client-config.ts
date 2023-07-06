@@ -76,12 +76,7 @@ export default async function api(req: Request, res: Response) {
 
 	// Send the updated client config base to the VPN server
 	const { ip, proto, port } = server;
-	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
-		.replace(/{{ ip }}/g, useLocalHost ? "localhost" : ip)
-		.replace(/{{ id }}/g, hash)
-		.replace(/{{ port }}/g, `${ port }`)
-		.replace(/{{ proto }}/g, proto)
-	);
+	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8");
 
 	// Write clientConfig to tmp && upload
 	await writeFile("/tmp/base.conf", clientConfig);
@@ -91,7 +86,13 @@ export default async function api(req: Request, res: Response) {
 
 	// Make & download the config
 	await vpn.execCommand(`./make_config.sh ${ user.id }`, { cwd: "/root/client-configs" });
-	const { stdout: ovpn } = await vpn.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" });
+	const ovpn = await vpn.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" })
+		.then(({ stdout }) => stdout
+			.replace(/{{ ip }}/g, useLocalHost ? "localhost" : ip)
+			.replace(/{{ id }}/g, hash)
+			.replace(/{{ port }}/g, `${ port }`)
+			.replace(/{{ proto }}/g, proto)
+		);
 	
 	// If were using localhost
 	if (useLocalHost && body.ed25519) {
