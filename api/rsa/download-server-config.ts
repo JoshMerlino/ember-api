@@ -11,16 +11,16 @@ export default async function api(req: Request, res: Response) {
 
 	// Get server info
 	const server = req.body;
-	const { ip, hostname, iface, proto, port, network, subnet } = server;
+	const { ipv4, ipv6, hostname, iface, proto, port, network, subnet } = server;
 
 	// Generate hash
-	const hash = createHash("sha256").update(JSON.stringify({ ip, proto, port }))
+	const hash = createHash("sha256").update(JSON.stringify({ ip: ipv4, proto, port }))
 		.digest("hex");
 
 	// Check method
 	if ([ "POST" ].indexOf(req.method) === -1) return rejectRequest(res, 405, `Method '${ req.method }' not allowed.`);
 	
-	if (!ip) return rejectRequest(res, 400, "Required field 'ip' is missing.");
+	if (!ipv4) return rejectRequest(res, 400, "Required field 'ipv4' is missing.");
 	if (!hostname) return rejectRequest(res, 400, "Required field 'hostname' is missing.");
 	if (!iface) return rejectRequest(res, 400, "Required field 'iface' is missing.");
 	if (!proto) return rejectRequest(res, 400, "Required field 'proto' is missing.");
@@ -29,7 +29,7 @@ export default async function api(req: Request, res: Response) {
 	if (!subnet) return rejectRequest(res, 400, "Required field 'subnet' is missing.");
 
 	// Get server networking info
-	const location = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${ process.env.IP_GEO_KEY }&ip=${ ip }`)
+	const location = await fetch(`https://api.ipgeolocation.io/ipgeo?apiKey=${ process.env.IP_GEO_KEY }&ip=${ ipv4 }`)
 		.then(res => res.json())
 		.catch(console.error);
 
@@ -52,13 +52,14 @@ export default async function api(req: Request, res: Response) {
 	const [ serverRow ] = await sql.unsafe("SELECT * FROM servers WHERE uuid = $1", [ hash ]);
 
 	// If server exists
-	if (!serverRow) await sql.unsafe("INSERT INTO servers (uuid, latitude, longitude, location, ipv4, port, protocol, internal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [ hash, Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, ip, parseInt(port), proto, address ]);
+	if (!serverRow) await sql.unsafe("INSERT INTO servers (uuid, latitude, longitude, location, ipv4, port, protocol, internal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [ hash, Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, ipv4, parseInt(port), proto, address ]);
 		
-	else await sql.unsafe("UPDATE servers SET latitude = $1, longitude = $2, location = $3, ipv4 = $5, port = $6, protocol = $7, internal = $8 WHERE uuid = $4", [ Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, hash, ip, parseInt(port), proto, address ]);
+	else await sql.unsafe("UPDATE servers SET latitude = $1, longitude = $2, location = $3, ipv4 = $5, port = $6, protocol = $7, internal = $8 WHERE uuid = $4", [ Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, hash, ipv4, parseInt(port), proto, address ]);
 
 	// Read config & inject data
 	const config = await readFile(resolve("./default/ovpn/server.conf"), "utf8").then(config => config
-		.replace(/{{ ip }}/g, ip)
+		.replace(/{{ ipv4 }}/g, ipv4)
+		.replace(/{{ ipv6 }}/g, ipv6)
 		.replace(/{{ id }}/g, hash)
 		.replace(/{{ port }}/g, port)
 		.replace(/{{ proto }}/g, proto)
