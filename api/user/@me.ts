@@ -56,9 +56,17 @@ export default async function api(req: Request, res: Response) {
 
 			if (users.filter(({ id }) => id !== user.id).length !== 0) return rejectRequest(res, 406, `Email address '${ email }' is already in use.`);
 			
+			// Remove any stripe account with the same email
+			await stripe.customers.list({ email: email.toLowerCase() })
+				.then(async customers => {
+					for (const customer of customers.data) {
+						await stripe.customers.del(customer.id);
+					}
+				});
+			
 			// Update email
 			user.email = email;
-			await stripe.customers.update(customer.id, { email });
+			await stripe.customers.update(customer.id, { email: email.toLowerCase() });
 			await sql.unsafe(
 				"UPDATE users SET email = $1 WHERE id = $2",
 				[ email, user.id ]

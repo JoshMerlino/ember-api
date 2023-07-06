@@ -7,6 +7,7 @@ import path from "path";
 import { v1, v4 } from "uuid";
 import { sql } from "../../src/mysql";
 import { resend } from "../../src/resend";
+import { stripe } from "../../src/stripe";
 import hash from "../../src/util/hash";
 import rejectRequest from "../../src/util/rejectRequest";
 import snowflake from "../../src/util/snowflake";
@@ -92,6 +93,14 @@ export default async function api(req: Request, res: Response): Promise<any> {
 	const now = Date.now();
 	const sso = v4();
 	const expires_after = now + 1000 * 60 * 15;
+
+	// Remove any stripe account with the same email
+	await stripe.customers.list({ email: email.toLowerCase() })
+		.then(async customers => {
+			for (const customer of customers.data) {
+				await stripe.customers.del(customer.id);
+			}
+		});
 
 	// Insert into database
 	await sql.unsafe(
