@@ -30,20 +30,24 @@ export default async function api(req: Request, res: Response) {
 	if (!server) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
 	if (!await isAllowed(server, user)) return rejectRequest(res, 403, `You are not allowed to access server with ID '${ hash }'.`);
 	
+	const vpn = new NodeSSH;
+	await vpn.connect({
+		host: server.ip,
+		timeout: 500,
+		readyTimeout: 2500,
+		username: "root",
+		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8")
+	}).catch(() => rejectRequest(res, 500, "Could not connect to VPN server."));
+	
 	// Initialize connections
 	const ssh = new NodeSSH;
 	await ssh.connect({
 		host: "ca.embervpn.org",
 		username: "root",
+		timeout: 500,
+		readyTimeout: 2500,
 		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8")
-	});
-
-	const vpn = new NodeSSH;
-	await vpn.connect({
-		host: server.ip,
-		username: "root",
-		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8")
-	});
+	}).catch(() => rejectRequest(res, 500, "Could not connect to CA server."));
 
 	// Generate the request
 	await vpn.execCommand("mkdir -fp ~/client-configs/keys");
