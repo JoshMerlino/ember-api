@@ -21,7 +21,7 @@ const strikes: Record<string, number> = {};
 			strikes[server.uuid]++;
 
 			// If strikes 3 times, remove server
-			if (strikes[server.uuid] >= 3) {
+			if (strikes[server.uuid] >= 5) {
 				clearInterval(timers[server.uuid]);
 				delete timers[server.uuid];
 				delete strikes[server.uuid];

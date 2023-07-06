@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import { Request, Response } from "express";
-import { readFile, writeFile } from "fs/promises";
+import { readFile, unlink, writeFile } from "fs/promises";
 import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
 import User from "../../src/auth/User";
@@ -33,7 +33,6 @@ export default async function api(req: Request, res: Response) {
 	const vpn = new NodeSSH;
 	await vpn.connect({
 		host: server.ip,
-		timeout: 500,
 		readyTimeout: 2500,
 		username: "root",
 		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8")
@@ -44,7 +43,6 @@ export default async function api(req: Request, res: Response) {
 	await ssh.connect({
 		host: "ca.embervpn.org",
 		username: "root",
-		timeout: 500,
 		readyTimeout: 2500,
 		privateKey: Buffer.from(process.env.CA_IDENTITY || "", "base64").toString("utf8")
 	}).catch(() => rejectRequest(res, 500, "Could not connect to CA server."));
@@ -143,5 +141,8 @@ export default async function api(req: Request, res: Response) {
 	// Clean up
 	ssh.dispose();
 	vpn.dispose();
+
+	// remove all tmp files recursively
+	await unlink("/tmp/*");
 
 }
