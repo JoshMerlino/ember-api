@@ -13,6 +13,7 @@ export async function getServers(hash?: string | null, user?: User): Promise<Emb
 		const [ code, country, state ] = server.location.split(";").map(a => a.trim());
 		return {
 			ip: server.ipv4,
+			ipv6: server.ipv6,
 			proto: server.protocol,
 			hash: server.uuid,
 			port: server.port,

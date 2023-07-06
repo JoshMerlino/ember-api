@@ -41,6 +41,7 @@ declare namespace MySQLData {
 		longitude: number
 		location: string
 		ipv4: string
+		ipv6: string
 		port: number
 		protocol: string
 		internal: string
