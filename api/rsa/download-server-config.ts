@@ -51,9 +51,9 @@ export default async function api(req: Request, res: Response) {
 	const [ serverRow ] = await sql.unsafe("SELECT * FROM servers WHERE uuid = $1", [ hash ]);
 
 	// If server exists
-	if (!serverRow) await sql.unsafe("INSERT INTO servers (uuid, latitude, longitude, location, ipv4, port, protocol, internal, ipv6) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", [ hash, Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, ipv4, parseInt(port), "tcp,ssh", address, ipv6 ]);
+	if (!serverRow) await sql.unsafe("INSERT INTO servers (uuid, latitude, longitude, location, ipv4, port, protocol, internal, ipv6) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)", [ hash, Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, ipv4, parseInt(port), "ssh,tcp,udp", address, ipv6 ]);
 		
-	else await sql.unsafe("UPDATE servers SET latitude = $1, longitude = $2, location = $3, ipv4 = $5, port = $6, protocol = $7, internal = $8, ipv6 = $9 WHERE uuid = $4", [ Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, hash, ipv4, parseInt(port), "tcp,ssh", address, ipv6 ]);
+	else await sql.unsafe("UPDATE servers SET latitude = $1, longitude = $2, location = $3, ipv4 = $5, port = $6, protocol = $7, internal = $8, ipv6 = $9 WHERE uuid = $4", [ Math.trunc(location.latitude * 1e10), Math.trunc(location.longitude * 1e10), geo, hash, ipv4, parseInt(port), "ssh,tcp,udp", address, ipv6 ]);
 
 	// Read config & inject data
 	const config = await readFile(resolve("./default/ovpn/server.conf"), "utf8").then(config => config
