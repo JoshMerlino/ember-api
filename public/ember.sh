@@ -1,6 +1,6 @@
 #!/bin/bash
 export TERM=xterm-256color
-export VERSION="1.1.5"
+export VERSION="1.1.7"
 export VERB=0
 
 # Set if we need to restart
