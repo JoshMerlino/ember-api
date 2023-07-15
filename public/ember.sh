@@ -262,17 +262,7 @@ function download_conf() {
 	# Add the CA's public key to the authorized keys
 	sed -i '/ember_ca/d' ~/.ssh/authorized_keys || errorcheck
 	echo $CA_PUB >> ~/.ssh/authorized_keys || errorcheck
-
-	echo "$CONFIG" > /etc/openvpn/server/tcp.conf || errorcheck
-	echo "$CONFIG" > /etc/openvpn/server/udp.conf || errorcheck
-
-	# Replace {{ proto }} with the protocol in each config
-	sed -i "s/{{ proto }}/tcp/g" /etc/openvpn/server/tcp.conf || errorcheck
-	sed -i "s/{{ proto }}/udp/g" /etc/openvpn/server/udp.conf || errorcheck
-
-	# And replace {{ port }} with the port in each config
-	sed -i "s/{{ port }}/1190/g" /etc/openvpn/server/tcp.conf || errorcheck
-	sed -i "s/{{ port }}/1191/g" /etc/openvpn/server/udp.conf || errorcheck
+	echo "$CONFIG" > /etc/openvpn/server/server.conf || errorcheck
 
 	echo -ne $GREEN"DONE\e[0m\n"
 
@@ -412,7 +402,7 @@ while [ "$1" ]; do
 			;;
 		update)
 			shift
-			wget https://api.embervpn.com/ember.sh
+			wget https://api.embervpn.org/ember.sh
 			chmod +x ember.sh
 			mv ember.sh /usr/local/bin/ember
 			;;
@@ -510,15 +500,11 @@ while [ "$1" ]; do
 
 			# Start openvpn
 			if [[ $VERB = 1 ]]; then
-				systemctl -f enable openvpn-server@tcp.service || errorcheck
-				systemctl -f enable openvpn-server@udp.service || errorcheck
-				systemctl start openvpn-server@tcp.service || errorcheck
-				systemctl start openvpn-server@udp.service || errorcheck
+				systemctl -f enable openvpn-server@server.service || errorcheck
+				systemctl start openvpn-server@server.service || errorcheck
 			else
-				systemctl -f enable openvpn-server@tcp.service &> /dev/null || errorcheck
-				systemctl -f enable openvpn-server@udp.service &> /dev/null || errorcheck
-				systemctl start openvpn-server@tcp.service &> /dev/null || errorcheck
-				systemctl start openvpn-server@udp.service &> /dev/null || errorcheck
+				systemctl -f enable openvpn-server@server.service &> /dev/null || errorcheck
+				systemctl start openvpn-server@server.service &> /dev/null || errorcheck
 			fi
 
 			# Create config generator
