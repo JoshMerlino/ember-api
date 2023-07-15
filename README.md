@@ -3,7 +3,7 @@ This is the API controller for the Ember VPN project.
 
 ## Install Ember CLI
 ```bash
-wget https://api.embervpn.com/ember.sh
+wget https://api.embervpn.org/ember.sh
 chmod +x ember.sh
 mv ember.sh /usr/local/bin/ember
 ```
