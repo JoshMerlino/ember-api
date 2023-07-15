@@ -45,6 +45,7 @@ declare namespace MySQLData {
 		port: number
 		protocol: string
 		internal: string
+		offline: boolean
 	}
 
 	export interface PendingIntents {

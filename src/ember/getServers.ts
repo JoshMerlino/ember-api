@@ -8,7 +8,7 @@ export async function getServers(hash?: string | null, user?: User): Promise<Emb
 	if (!serverRow) throw new Error("No servers found");
 
 	// Loop through servers
-	return await Promise.all(serverRow.map(server => {
+	return await Promise.all(serverRow.filter(server => !server.offline).map(server => {
 
 		const [ code, country, state ] = server.location.split(";").map(a => a.trim());
 		return {

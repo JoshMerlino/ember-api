@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import { Request, Response } from "express";
-import { readFile, unlink, writeFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import { NodeSSH } from "node-ssh";
 import { resolve } from "path";
 import User from "../../src/auth/User";
@@ -17,18 +17,26 @@ export default async function api(req: Request, res: Response) {
 	const user = authorization && await User.fromAuthorization(authorization);
 	if (!authorization || !user) return rejectRequest(res, 401);
 
-	// Get the server hash
-	const body: Record<string, string | undefined> = { ...req.body, ...req.query };
+	// Get the server hash & protocol
+	const body: Record<string, string | undefined> = { proto: "tcp", ...req.body, ...req.query };
 	const hash = body.hash || body.server;
-	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
-	// Get if the user wants to use localhost
-	const useLocalHost = (body.ed25519?.length || 0) > 0;
+	// Make sure the user has a valid hash
+	if (!hash) return rejectRequest(res, 400, "Missing key 'hash' in request.");
 
 	// Get the server
 	const [ server ] = await getServers(hash);
-	if (!server) return rejectRequest(res, 404, `Server with ID '${ hash }' not found.`);
-	if (!await isAllowed(server, user)) return rejectRequest(res, 403, `You are not allowed to access server with ID '${ hash }'.`);
+	if (!server) return rejectRequest(res, 404, `Server '${ hash }' not found.`);
+	if (!await isAllowed(server, user)) return rejectRequest(res, 403, `You are not allowed to access server '${ hash }'.`);
+
+	// Get supported protocols from the server
+	const supportedProtocols = server.proto.split(",").map(proto => proto.trim().toUpperCase());
+
+	// Get the requested protocol
+	const reqProto = body.proto?.toUpperCase() as "TCP" | "UDP" | "SSH";
+
+	// Make sure the protocol is supported
+	if (!supportedProtocols.includes(reqProto?.toUpperCase() || "")) return rejectRequest(res, 400, `Protocol '${ reqProto }' is not supported by server '${ hash }'.`);
 	
 	const vpn = new NodeSSH;
 	await vpn.connect({
@@ -77,7 +85,7 @@ export default async function api(req: Request, res: Response) {
 	await vpn.execCommand("cp /etc/openvpn/server/{ta.key,ca.crt} ~/client-configs/keys/", { cwd: "/root" });
 
 	// Send the updated client config base to the VPN server
-	const { ip, proto, port } = server;
+	const { ip } = server;
 	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8");
 
 	// Write clientConfig to tmp && upload
@@ -90,13 +98,13 @@ export default async function api(req: Request, res: Response) {
 	await vpn.execCommand(`./make_config.sh ${ user.id }`, { cwd: "/root/client-configs" });
 	const ovpn = await vpn.execCommand(`cat ~/client-configs/files/${ user.id }.ovpn`, { cwd: "/root" })
 		.then(({ stdout }) => stdout
-			.replace(/{{ ip }}/g, useLocalHost ? "localhost" : ip)
+			.replace(/{{ ip }}/g, reqProto === "SSH" ? "127.0.0.1" : ip)
 			.replace(/{{ id }}/g, hash)
-			.replace(/{{ port }}/g, `${ port }`)
-			.replace(/{{ proto }}/g, proto));
+			.replace(/{{ port }}/g, `${ reqProto === "SSH" ? body.port : server.port }`)
+			.replace(/{{ proto }}/g, reqProto === "SSH" ? "tcp4" : reqProto.toLowerCase()));
 	
 	// If were using localhost
-	if (useLocalHost && body.ed25519) {
+	if (reqProto === "SSH" && body.ed25519) {
 
 		// Make sure this host has a `vpn` user
 		if (!await vpn.execCommand("id -u vpn").then(({ stdout }) => stdout.trim()).then(Number).then(Boolean)) return rejectRequest(res, 500, "This server does not support SSH-looping.");
@@ -108,7 +116,7 @@ export default async function api(req: Request, res: Response) {
 				const [ type, key, comment ] = line.split(" ");
 				return { type, key, comment };
 			}))
-			.then(keys => keys.filter(({ comment }) => comment !== `u@${ user.id }`));
+			.then(keys => keys.filter(({ comment }) => comment !== `u@${ user.id }` && comment !== "undefined" && comment !== undefined));
 		
 		// Add the ed25519 key to the authorized keys
 		authorizedKeys.push({
@@ -120,7 +128,7 @@ export default async function api(req: Request, res: Response) {
 		const td = randomBytes(16).toString("hex");
 		
 		// Write the authorized keys file
-		const authorizedKeysFile = authorizedKeys.map(({ type, key, comment }) => `${ type } ${ key } ${ comment }`).join("\n");
+		const authorizedKeysFile = authorizedKeys.map(({ type, key, comment }) => `${ type } ${ key } ${ comment }`).join("\n") + "\n";
 		await writeFile(`/tmp/authorized_keys-${ td }`, authorizedKeysFile);
 		await vpn.putFile(`/tmp/authorized_keys-${ td }`, "/tmp/authorized_keys");
 		
@@ -141,8 +149,5 @@ export default async function api(req: Request, res: Response) {
 	// Clean up
 	ssh.dispose();
 	vpn.dispose();
-
-	// remove all tmp files recursively
-	await unlink("/tmp/*");
 
 }

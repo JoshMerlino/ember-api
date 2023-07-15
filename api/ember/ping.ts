@@ -20,12 +20,12 @@ const strikes: Record<string, number> = {};
 			// Add strike
 			strikes[server.uuid]++;
 
-			// If strikes 3 times, remove server
+			// If strikes 5 times, mark as offline
 			if (strikes[server.uuid] >= 5) {
 				clearInterval(timers[server.uuid]);
 				delete timers[server.uuid];
 				delete strikes[server.uuid];
-				await sql`DELETE FROM servers WHERE uuid = ${ server.uuid }`;
+				await sql`UPDATE servers SET offline = true WHERE uuid = ${ server.uuid }`;
 				console.info(`Removed server ${ server.uuid } due to inactivity.`);
 			}
 			
@@ -47,6 +47,9 @@ export default async function api(req: Request, res: Response): Promise<void | R
 	// Reset strikes
 	strikes[server.uuid] = 0;
 
+	// If that server is offline, mark it as online
+	if (server.offline) await sql`UPDATE servers SET offline = false WHERE uuid = ${ server.uuid }`;
+		
 	res.json({ success: true });
 
 }
