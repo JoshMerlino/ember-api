@@ -304,7 +304,8 @@ function conf_ufw() {
 		sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
 		sysctl -p
 
-		ufw allow $PORT/$PROTO
+		ufw allow $PORT/tcp
+		ufw allow $PORT/udp
 		ufw allow 22
 		ufw disable && ufw --force enable
 	else
@@ -316,7 +317,8 @@ function conf_ufw() {
 		sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf &> /dev/null
 		sysctl -p &> /dev/null
 
-		ufw allow $PORT/$PROTO &> /dev/null
+		ufw allow $PORT/tcp &> /dev/null
+		ufw allow $PORT/udp &> /dev/null
 		ufw allow 22 &> /dev/null
 		ufw disable &> /dev/null && ufw --force enable &> /dev/null
 	fi
