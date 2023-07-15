@@ -1,6 +1,6 @@
 #!/bin/bash
 export TERM=xterm-256color
-export VERSION="1.1.8"
+export VERSION="1.1.9"
 export VERB=0
 
 # Set if we need to restart
@@ -105,10 +105,10 @@ EOT
 
 	touch ~/.hushlogin
 
-	# Add scripts to the crontab
+	# Add `/usr/local/bin/ember ping` to the crontab on reboot and every minute
 	crontab -r
-	(crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/ember ping >/dev/null 2>&1") | crontab -
-	(crontab -l 2>/dev/null; echo "@reboot /usr/local/bin/ember ping >/dev/null 2>&1") | crontab -
+	(crontab -l 2>/dev/null; echo "@reboot /usr/local/bin/ember ping") | crontab -
+	(crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/ember ping") | crontab -
 
 	echo -ne $GREEN"DONE\e[0m\n"
 
