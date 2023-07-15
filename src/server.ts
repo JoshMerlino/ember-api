@@ -1,6 +1,6 @@
 import asyncRequireContext from "async-require-context";
 import chalk from "chalk";
-import { Express, RequestHandler } from "express";
+import express, { Express, RequestHandler } from "express";
 import http from "http";
 
 export default async function server(app: Express): Promise<void> {
@@ -42,6 +42,8 @@ export default async function server(app: Express): Promise<void> {
 		}));
 		console.info(chalk.greenBright("EDP"), "Added API endpoints from", chalk.cyan(endpoint.path));
 	});
+
+	app.use(express.static("public"));
 
 	// Get port to listen on (HTTP)
 	const PORT = process.env.PORT || 80;

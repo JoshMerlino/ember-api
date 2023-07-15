@@ -60,8 +60,6 @@ export default async function api(req: Request, res: Response) {
 		.replace(/{{ ipv4 }}/g, ipv4)
 		.replace(/{{ ipv6 }}/g, ipv6)
 		.replace(/{{ id }}/g, hash)
-		.replace(/{{ port }}/g, port)
-		.replace(/{{ proto }}/g, "tcp")
 		.replace(/{{ iface }}/g, iface)
 		.replace(/{{ subnet }}/g, subnet)
 		.replace(/{{ network }}/g, network)
