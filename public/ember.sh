@@ -1,6 +1,6 @@
 #!/bin/bash
 export TERM=xterm-256color
-export VERSION="1.1.7"
+export VERSION="1.1.8"
 export VERB=0
 
 # Set if we need to restart
@@ -107,7 +107,8 @@ EOT
 
 	# Add scripts to the crontab
 	crontab -r
-	(crontab -l 2>/dev/null; echo "* * * * * /usr/bin/curl https://api.embervpn.org/ember/ping?hostname=$(/usr/bin/hostname) >/dev/null 2>&1") | crontab -
+	(crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/ember ping >/dev/null 2>&1") | crontab -
+	(crontab -l 2>/dev/null; echo "@reboot /usr/local/bin/ember ping >/dev/null 2>&1") | crontab -
 
 	echo -ne $GREEN"DONE\e[0m\n"
 
@@ -411,6 +412,10 @@ while [ "$1" ]; do
 		ssh)
 			shift
 			sshall
+			;;
+		ping)
+			shift
+			curl https://api.embervpn.org/ember/ping?hostname=$(hostname)
 			;;
 		enroll)
 			shift
