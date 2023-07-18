@@ -1,7 +1,10 @@
 #!/bin/bash
 export TERM=xterm-256color
-export VERSION="1.2.0"
+export VERSION="1.2.1"
 export VERB=0
+
+# Set non-interactive mode for apt
+export DEBIAN_FRONTEND=noninteractive
 
 # Set if we need to restart
 NEEDS_RESTART=false
@@ -47,15 +50,16 @@ function help() {
 # Install dependencies
 function install() {
 	echo -ne "   "$GRAY"Installing dependencies... \e[0m"
+
 	if [[ $VERB = 1 ]]; then
 		echo -e
 		apt-get update || errorcheck
 		apt-get upgrade -y || errorcheck
-		apt-get install easy-rsa openvpn curl jq ruby sslh -y || errorcheck
+		apt-get install easy-rsa openvpn curl jq ruby -y || errorcheck
 	else
 		apt-get update &> /dev/null || errorcheck
 		apt-get upgrade -y &> /dev/null || errorcheck
-		apt-get install easy-rsa openvpn curl jq ruby sslh -y &> /dev/null || errorcheck
+		apt-get install easy-rsa openvpn curl jq ruby -y &> /dev/null || errorcheck
 	fi
 
 	# Retrieve the public IPv4 & v6 address
@@ -264,15 +268,15 @@ function download_conf() {
 	sed -i '/ember_ca/d' ~/.ssh/authorized_keys || errorcheck
 	echo $CA_PUB >> ~/.ssh/authorized_keys || errorcheck
 	echo "$CONFIG" > /etc/openvpn/server/tcp.conf || errorcheck
-	echo "$CONFIG" > /etc/openvpn/server/udp.conf || errorcheck
+	#echo "$CONFIG" > /etc/openvpn/server/udp.conf || errorcheck
 
 	# Replace {{ proto }} with the protocol
 	sed -i "s/{{ proto }}/tcp/g" /etc/openvpn/server/tcp.conf || errorcheck
-	sed -i "s/{{ proto }}/udp/g" /etc/openvpn/server/udp.conf || errorcheck
+	#sed -i "s/{{ proto }}/udp/g" /etc/openvpn/server/udp.conf || errorcheck
 
 	# Replace {{ port }} with the port
-	sed -i "s/{{ port }}/1190/g" /etc/openvpn/server/tcp.conf || errorcheck
-	sed -i "s/{{ port }}/1191/g" /etc/openvpn/server/udp.conf || errorcheck
+	sed -i "s/{{ port }}/1194/g" /etc/openvpn/server/tcp.conf || errorcheck
+	#sed -i "s/{{ port }}/1191/g" /etc/openvpn/server/udp.conf || errorcheck
 
 	echo -ne $GREEN"DONE\e[0m\n"
 
@@ -314,8 +318,7 @@ function conf_ufw() {
 		sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
 		sysctl -p
 
-		ufw allow $PORT/tcp
-		ufw allow $PORT/udp
+		ufw allow $PORT
 		ufw allow 22
 		ufw disable && ufw --force enable
 	else
@@ -327,8 +330,7 @@ function conf_ufw() {
 		sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf &> /dev/null
 		sysctl -p &> /dev/null
 
-		ufw allow $PORT/tcp &> /dev/null
-		ufw allow $PORT/udp &> /dev/null
+		ufw allow $PORT &> /dev/null
 		ufw allow 22 &> /dev/null
 		ufw disable &> /dev/null && ufw --force enable &> /dev/null
 	fi
@@ -514,38 +516,17 @@ while [ "$1" ]; do
 			download_conf $NAME $IFACE $IP $PORT $PROTO $NETWORK $SUBNET
 			conf_ufw $NETWORK $SUBNET $PROTO $PORT
 
-			# Create SSLH config
-			sslh_config='''\
-listen:
-(
-	{ host: "::"; port: "1194"; },
-    { host: "0.0.0.0"; port: "1194"; }
-);
-protocols:
-(
-    { name: "openvpn-tcp"; host: "127.0.0.1"; port: "1190"; },
-    { name: "openvpn-udp"; host: "127.0.0.1"; port: "1191"; }
-);
-'''
-
-			# Create SSLH config file
-			echo "$sslh_config" > /etc/sslh/sslh.cfg
-
 			# Start openvpn
 			if [[ $VERB = 1 ]]; then
 				systemctl -f enable openvpn-server@tcp.service || errorcheck
-				systemctl -f enable openvpn-server@udp.service || errorcheck
-				systemctl -f enable sslh || errorcheck
 				systemctl start openvpn-server@tcp.service || errorcheck
-				systemctl start openvpn-server@udp.service || errorcheck
-				systemctl start sslh || errorcheck
+				#systemctl -f enable openvpn-server@udp.service || errorcheck
+				#systemctl start openvpn-server@udp.service || errorcheck
 			else
 				systemctl -f enable openvpn-server@tcp.service &> /dev/null || errorcheck
-				systemctl -f enable openvpn-server@udp.service &> /dev/null || errorcheck
-				systemctl -f enable sslh &> /dev/null || errorcheck
 				systemctl start openvpn-server@tcp.service &> /dev/null || errorcheck
-				systemctl start openvpn-server@udp.service &> /dev/null || errorcheck
-				systemctl start sslh &> /dev/null || errorcheck
+				#systemctl -f enable openvpn-server@udp.service &> /dev/null || errorcheck
+				#systemctl start openvpn-server@udp.service &> /dev/null || errorcheck
 			fi
 
 			# Create config generator
