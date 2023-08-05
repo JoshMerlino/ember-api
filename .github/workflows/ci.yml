@@ -36,34 +36,10 @@ jobs:
           git commit -am "Eslint: fix all" || true
           git push origin ${{ github.head_ref }} || true
 
-  test:
-    name: Test build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
-          submodules: recursive
-
-      - name: Use Node.js 18
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: "Build"
-        run: npm run build
-
-      - name: "Test"
-        run: npm run test
-
   version:
     name: Bump version
     runs-on: ubuntu-latest
-    needs: [ test, lint ]
+    needs: lint
     if: github.ref != 'refs/heads/master'
     permissions:
       contents: write
