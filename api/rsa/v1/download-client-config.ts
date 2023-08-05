@@ -74,7 +74,7 @@ export default async function api(req: Request, res: Response) {
 	await vpn.execCommand("cp /etc/openvpn/server/{ta.key,ca.crt} ~/client-configs/keys/", { cwd: "/root" });
 
 	// Send the updated client config base to the VPN server
-	const { ip, hostname, iface, proto, port, network, subnet } = server as any;
+	const { ip, hostname, iface, proto, port, network, subnet } = server as unknown as Record<string, string>;
 	const clientConfig = await readFile(resolve("./default/ovpn/client.conf"), "utf8").then(config => config
 		.replace(/{{ ip }}/g, ip)
 		.replace(/{{ id }}/g, hash)
