@@ -49,7 +49,7 @@
 		"extract-zip": "^2.0.1",
 		"filestore-json": "^1.1.8",
 		"ideal-password": "^2.4.1",
-		"marked": "^5.0.2",
+		"marked": "^7.0.0",
 		"mkdirp": "^3.0.0",
 		"mysql2": "^3.2.0",
 		"node-2fa": "^2.0.3",
