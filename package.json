@@ -58,7 +58,7 @@
 		"postgres": "^3.3.4",
 		"resend": "^0.17.1",
 		"stripe": "^12.16.0",
-		"systeminformation": "^5.17.12",
+		"systeminformation": "^5.18.13",
 		"ua-parser-js": "^1.0.32",
 		"uuid": "^9.0.0",
 		"uuid-int": "^3.1.0",
